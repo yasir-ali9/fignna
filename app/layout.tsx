@@ -26,8 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        lang="en"
-        className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${inter.className} ${jetbrainsMono.variable} antialiased`}
         suppressHydrationWarning
       >
         <ThemeProvider>{children}</ThemeProvider>
