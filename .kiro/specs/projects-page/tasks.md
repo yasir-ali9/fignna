@@ -1,15 +1,15 @@
 # Implementation Plan
 
-- [x] 1. Create apps page structure
+- [x] 1. Create projects page structure
 
-  - Create `/apps/page.tsx` with authentication check
+  - Create `/projects/page.tsx` with authentication check
   - Add redirect logic for unauthenticated users
   - Implement basic page layout with theme integration
   - _Requirements: 1.1, 1.2, 1.3, 3.1, 3.2_
 
 - [x] 2. Create header component with session data
 
-  - Build `app/apps/_components/header.tsx` with session information
+  - Build `app/projects/_components/header.tsx` with session information
   - Display "fignna" text on the left side
   - Show user name and profile picture on the right side
   - Add responsive design and theme styling

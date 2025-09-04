@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Header from "./_components/header";
 
-export default function AppsPage() {
+export default function ProjectsPage() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
 
@@ -37,7 +37,12 @@ export default function AppsPage() {
   return (
     <div className="min-h-screen bg-bk-50">
       {/* Header with session data */}
-      <Header user={session.user} />
+      <Header
+        user={{
+          ...session.user,
+          image: session.user.image ?? undefined,
+        }}
+      />
 
       {/* Main content area */}
       <main className="container mx-auto px-4 py-8">

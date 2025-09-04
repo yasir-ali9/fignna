@@ -2,25 +2,25 @@
 
 ## Overview
 
-This design document outlines the implementation of an apps page with a header component that displays session information for authenticated users. The page will show user profile data and provide a clean interface for the application.
+This design document outlines the implementation of a projects page with a header component that displays session information for authenticated users. The page will show user profile data and provide a clean interface for the application.
 
 ## Architecture
 
 ### Component Structure
 
 ```
-app/apps/
-├── page.tsx                 # Main apps page component
+app/projects/
+├── page.tsx                 # Main projects page component
 └── _components/
     └── header.tsx          # Header component with session data
 ```
 
 ### Authentication Flow
 
-1. **Page Load**: User navigates to `/apps`
+1. **Page Load**: User navigates to `/projects`
 2. **Session Check**: Check if user is authenticated using `useSession` hook
 3. **Redirect Logic**: If not authenticated, redirect to `/auth` page
-4. **Display Content**: Show apps page with header containing session data
+4. **Display Content**: Show projects page with header containing session data
 
 ### State Management
 
@@ -31,7 +31,7 @@ The page will use better-auth's React hooks:
 
 ## Components and Interfaces
 
-### 1. Main Apps Page (`app/apps/page.tsx`)
+### 1. Main Projects Page (`app/projects/page.tsx`)
 
 **Purpose**: Main page component for authenticated users
 
@@ -41,7 +41,7 @@ The page will use better-auth's React hooks:
 - Clean layout with header component
 - Theme-aware styling
 
-### 2. Header Component (`app/apps/_components/header.tsx`)
+### 2. Header Component (`app/projects/_components/header.tsx`)
 
 **Purpose**: Header component displaying session information
 
