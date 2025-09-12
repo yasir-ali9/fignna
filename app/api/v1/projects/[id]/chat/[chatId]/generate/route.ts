@@ -339,6 +339,51 @@ Remember: You are generating production-ready code that will be immediately exec
           generatedCode: generatedCode,
           messageId: assistantMessageId,
         });
+
+        // Auto-save files from sandbox to project database
+        try {
+          await sendProgress({
+            type: "status",
+            message: "Saving files to project...",
+          });
+
+          const saveResponse = await fetch(
+            `${
+              process.env.NEXTAUTH_URL || "http://localhost:3000"
+            }/api/v1/projects/${projectId}/save`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Cookie: request.headers.get("cookie") || "",
+              },
+            }
+          );
+
+          if (saveResponse.ok) {
+            const saveResult = await saveResponse.json();
+            console.log(
+              `[V1 Chat Generate API] Auto-saved ${
+                saveResult.data?.filesCount || 0
+              } files to project`
+            );
+
+            await sendProgress({
+              type: "status",
+              message: `Saved ${
+                saveResult.data?.filesCount || 0
+              } files to project`,
+            });
+          } else {
+            console.warn(
+              "[V1 Chat Generate API] Failed to auto-save files:",
+              await saveResponse.text()
+            );
+          }
+        } catch (saveError) {
+          console.warn("[V1 Chat Generate API] Auto-save failed:", saveError);
+          // Don't fail the entire generation if save fails
+        }
       } catch (error) {
         console.error("[V1 Chat Generate API] Error:", error);
 

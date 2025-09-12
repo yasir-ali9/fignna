@@ -28,6 +28,7 @@ export class SandboxManager {
   currentSandbox: Sandbox | null = null;
   isCreating: boolean = false;
   isSyncing: boolean = false;
+  isRestarting: boolean = false;
   error: string | null = null;
 
   // Reference to editor engine for project integration
@@ -205,6 +206,41 @@ export class SandboxManager {
    */
   get currentSandboxId(): string | null {
     return this.currentSandbox?.id || null;
+  }
+
+  /**
+   * Restart Vite server in current sandbox
+   */
+  async restartViteServer(): Promise<void> {
+    if (!this.currentSandbox || this.isRestarting) return;
+
+    this.isRestarting = true;
+    this.error = null;
+
+    try {
+      console.log("Restarting Vite server...");
+
+      const response = await fetch("/api/v1/sandbox/restart", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to restart Vite server");
+      }
+
+      console.log("✅ Vite server restarted successfully");
+      this.isRestarting = false;
+    } catch (error) {
+      this.error =
+        error instanceof Error
+          ? error.message
+          : "Failed to restart Vite server";
+      this.isRestarting = false;
+      throw error;
+    }
   }
 
   /**

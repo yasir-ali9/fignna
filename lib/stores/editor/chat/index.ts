@@ -56,10 +56,20 @@ export class ChatManager {
 
   // Load chats for current project
   async loadProjectChats(projectId: string) {
+    // Prevent duplicate loading
+    if (this.isLoadingChats) {
+      console.log(
+        "[ChatManager] Already loading chats, skipping duplicate call"
+      );
+      return;
+    }
+
     this.isLoadingChats = true;
     this.error = null;
 
     try {
+      console.log(`[ChatManager] Loading chats for project ${projectId}`);
+
       const response = await fetch(`/api/v1/projects/${projectId}/chat`);
       const result = await response.json();
 
@@ -73,15 +83,25 @@ export class ChatManager {
         updatedAt: new Date(chat.updatedAt),
       }));
 
+      console.log(`[ChatManager] Loaded ${this.chats.length} chats`);
+
       // Auto-select first chat or create default if none exist
       if (this.chats.length > 0) {
+        console.log(
+          `[ChatManager] Switching to existing chat: ${this.chats[0].id}`
+        );
         await this.switchToChat(this.chats[0].id);
       } else {
+        console.log("[ChatManager] No chats found, creating default chat");
         await this.createDefaultChat(projectId);
       }
 
       this.isLoadingChats = false;
+      console.log(
+        `[ChatManager] Chat loading completed. Active chat: ${this.activeChat?.id}`
+      );
     } catch (error) {
+      console.error("[ChatManager] Error loading chats:", error);
       this.error = error instanceof Error ? error.message : "Unknown error";
       this.isLoadingChats = false;
     }
@@ -89,7 +109,10 @@ export class ChatManager {
 
   // Create default "Main Chat" for new projects
   async createDefaultChat(projectId: string) {
-    return await this.createChat(projectId, "Main Chat");
+    console.log(`[ChatManager] Creating default chat for project ${projectId}`);
+    const chat = await this.createChat(projectId, "Main Chat");
+    console.log(`[ChatManager] Default chat created: ${chat.id}`);
+    return chat;
   }
 
   // Create a new chat
@@ -98,6 +121,10 @@ export class ChatManager {
     this.error = null;
 
     try {
+      console.log(
+        `[ChatManager] Creating chat "${name}" for project ${projectId}`
+      );
+
       const response = await fetch(`/api/v1/projects/${projectId}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -116,12 +143,15 @@ export class ChatManager {
         updatedAt: new Date(result.data.chat.updatedAt),
       };
 
+      console.log(`[ChatManager] Chat created successfully: ${newChat.id}`);
+
       this.chats.unshift(newChat);
       await this.switchToChat(newChat.id);
 
       this.isCreatingChat = false;
       return newChat;
     } catch (error) {
+      console.error("[ChatManager] Error creating chat:", error);
       this.error = error instanceof Error ? error.message : "Unknown error";
       this.isCreatingChat = false;
       throw error;
@@ -138,15 +168,8 @@ export class ChatManager {
     this.activeChat = chat;
     await this.loadChatMessages(chatId);
 
-    // Update project's active chat
-    if (this.engine.projects.currentProject) {
-      try {
-        await this.engine.projects.updateProjectMetadata({});
-        // Note: We'd need to add activeChatId to the project update API
-      } catch (error) {
-        console.warn("Failed to update project active chat:", error);
-      }
-    }
+    // TODO: Update project's active chat when activeChatId is added to the project schema
+    // For now, we just track the active chat in memory without persisting it
   }
 
   // Load messages for a chat
@@ -387,25 +410,8 @@ export class ChatManager {
               if (data.type === "complete") {
                 appliedFiles = data.results?.filesCreated || [];
 
-                // Update project files if we have a project
-                if (
-                  this.engine.projects.currentProject &&
-                  appliedFiles.length > 0
-                ) {
-                  try {
-                    const manifestResponse = await fetch(
-                      "/api/v1/sandbox/files/manifest"
-                    );
-                    const manifestData = await manifestResponse.json();
-
-                    if (manifestData.success && manifestData.files) {
-                      this.engine.files.setFiles(manifestData.files);
-                      await this.engine.projects.saveProject();
-                    }
-                  } catch (manifestError) {
-                    console.error("Failed to sync files:", manifestError);
-                  }
-                }
+                // Files are now auto-saved by the apply API after 3 seconds
+                // No need to manually save here to avoid race conditions and empty file issues
               }
             } catch {
               // Ignore parse errors

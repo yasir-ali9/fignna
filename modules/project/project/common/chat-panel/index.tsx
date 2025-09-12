@@ -45,16 +45,20 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
     [engine.sandbox, engine.chat]
   );
 
-  // Initialize chat when project loads
+  // Initialize chat when project loads (with guard to prevent duplicate calls)
   useEffect(() => {
     const initializeChat = async () => {
-      if (engine.projects.currentProject && !engine.chat.hasActiveChat) {
+      if (
+        engine.projects.currentProject &&
+        !engine.chat.hasActiveChat &&
+        !engine.chat.isLoadingChats
+      ) {
         await engine.chat.loadProjectChats(engine.projects.currentProject.id);
       }
     };
 
     initializeChat();
-  }, [engine.projects.currentProject?.id, engine.chat, engine.projects]);
+  }, [engine.projects.currentProject?.id]);
 
   // Handle initial prompt from MobX state (not URL)
   useEffect(() => {

@@ -346,6 +346,8 @@ const FramesContainer = observer(() => {
         height={800}
         isLoading={
           isCreating ||
+          editorEngine.sandbox.isRestarting ||
+          editorEngine.projects.isSyncing ||
           editorEngine.sandbox.currentSandbox?.status === "creating"
         }
         frameId="main-frame"

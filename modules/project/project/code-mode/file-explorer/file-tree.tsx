@@ -508,10 +508,25 @@ export const FileTree = observer(
       ]
     );
 
-    if (isLoading || engine.files.isLoadingFiles) {
+    if (
+      isLoading ||
+      engine.files.isLoadingFiles ||
+      engine.projects.isSyncing ||
+      engine.sandbox.isRestarting ||
+      engine.sandbox.isCreating
+    ) {
       return (
         <div className="p-4 text-center">
-          <div className="text-[11px] text-fg-60">Loading files...</div>
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-fg-50 mx-auto mb-2"></div>
+          <div className="text-[11px] text-fg-60">
+            {engine.sandbox.isRestarting
+              ? "Restarting server..."
+              : engine.projects.isSyncing
+              ? "Syncing project..."
+              : engine.sandbox.isCreating
+              ? "Creating sandbox..."
+              : "Loading files..."}
+          </div>
         </div>
       );
     }

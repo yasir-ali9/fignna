@@ -79,11 +79,30 @@ export class StateManager {
 
   constructor() {
     makeAutoObservable(this);
+    this.initializeFromStorage();
+  }
+
+  // Initialize state from localStorage
+  private initializeFromStorage() {
+    if (typeof window !== "undefined") {
+      const savedMode = localStorage.getItem("editorAppMode");
+      if (savedMode && Object.values(AppMode).includes(savedMode as AppMode)) {
+        this.appMode = savedMode as AppMode;
+      }
+    }
+  }
+
+  // Save state to localStorage
+  private saveToStorage() {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("editorAppMode", this.appMode);
+    }
   }
 
   // App mode management
   setAppMode(mode: AppMode) {
     this.appMode = mode;
+    this.saveToStorage();
   }
 
   // Mode management

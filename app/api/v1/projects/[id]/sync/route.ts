@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
 import { auth } from "@/lib/auth";
-import { projectQueries, versionQueries, projectIdParamSchema } from "@/lib/db";
+import { projectQueries, projectIdParamSchema } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -105,150 +105,31 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!projectFiles.files || Object.keys(projectFiles.files).length === 0) {
       console.log(
-        `[V1 Project Sync API] No files found in project ${id}, creating basic React app structure...`
+        `[V1 Project Sync API] No files found in project ${id}. Cannot sync empty project.`
       );
 
-      // Create a basic React app structure for empty projects
-      projectFiles.files = {
-        "package.json": JSON.stringify(
-          {
-            name: "my-react-app",
-            version: "0.1.0",
-            private: true,
-            dependencies: {
-              react: "^18.2.0",
-              "react-dom": "^18.2.0",
-            },
-            scripts: {
-              start: "react-scripts start",
-              build: "react-scripts build",
-              dev: "vite",
-              preview: "vite preview",
-            },
-            devDependencies: {
-              vite: "^5.0.0",
-              "@vitejs/plugin-react": "^4.0.0",
-            },
-            browserslist: {
-              production: [">0.2%", "not dead", "not op_mini all"],
-              development: [
-                "last 1 chrome version",
-                "last 1 firefox version",
-                "last 1 safari version",
-              ],
-            },
-          },
-          null,
-          2
-        ),
-        "vite.config.js": `import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    host: true,
-    port: 5173
-  }
-})`,
-        "index.html": `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>React App</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>`,
-        "src/main.jsx": `import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from './App.jsx'
-import './index.css'
-
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-)`,
-        "src/App.jsx": `import React from 'react'
-import './App.css'
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Welcome to Your React App</h1>
-        <p>Start building something amazing!</p>
-      </header>
-    </div>
-  )
-}
-
-export default App`,
-        "src/App.css": `.App {
-  text-align: center;
-}
-
-.App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-}`,
-        "src/index.css": `body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}`,
-      };
-
-      console.log(
-        `[V1 Project Sync API] Created basic React app with ${
-          Object.keys(projectFiles.files).length
-        } files`
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Cannot sync empty project",
+          details:
+            "Project has no files to sync. Use the chat to generate code first.",
+          version: "v1",
+        },
+        { status: 400 }
       );
-
-      // Create version snapshot for the scaffolded project
-      try {
-        await versionQueries.create({
-          projectId: id,
-          files: projectFiles.files,
-          dependencies:
-            JSON.parse(projectFiles.files["package.json"]).dependencies || {},
-          message: "Initial React app scaffolding",
-          // changeType: "sync",
-        });
-        console.log(
-          `[V1 Project Sync API] Created scaffolding version for project ${id}`
-        );
-      } catch (versionError) {
-        console.warn(
-          `[V1 Project Sync API] Failed to create scaffolding version:`,
-          versionError
-        );
-      }
     }
 
     console.log(
       `[V1 Project Sync API] Found ${
         Object.keys(projectFiles.files).length
       } files to sync`
+    );
+
+    // Log the files being synced for debugging
+    console.log(
+      "[V1 Project Sync API] Files to sync:",
+      Object.keys(projectFiles.files)
     );
 
     // Kill existing sandbox if any
@@ -339,6 +220,68 @@ print(f'✓ Successfully wrote {len(os.listdir('/home/user/app'))} files to sand
     // Execute the file creation script
     await sandbox.runCode(fileCreationScript);
 
+    // Ensure Vite config has correct E2B settings (only if needed)
+    console.log(
+      "[V1 Project Sync API] Checking Vite config for E2B compatibility..."
+    );
+    await sandbox.runCode(`
+import os
+import re
+
+vite_config_path = '/home/user/app/vite.config.js'
+needs_update = False
+
+# Check if vite.config.js exists and has E2B allowedHosts
+if os.path.exists(vite_config_path):
+    with open(vite_config_path, 'r') as f:
+        existing_config = f.read()
+    
+    # Check if it already has E2B allowedHosts
+    if '.e2b.app' not in existing_config or 'allowedHosts' not in existing_config:
+        print('⚠ Vite config exists but missing E2B allowedHosts, updating...')
+        needs_update = True
+    else:
+        print('✓ Vite config already has E2B compatibility')
+else:
+    print('⚠ No vite.config.js found, creating E2B-compatible config...')
+    needs_update = True
+
+# Only update if needed
+if needs_update:
+    vite_config_content = """import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// E2B-compatible Vite configuration
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 5173,
+    strictPort: true,
+    hmr: false,
+    allowedHosts: ['.e2b.app', '.e2b.dev', 'localhost', '127.0.0.1']
+  }
+})"""
+
+    with open(vite_config_path, 'w') as f:
+        f.write(vite_config_content)
+    print('✓ Updated vite.config.js with E2B compatibility')
+    
+    # Kill existing processes and clear cache only if we updated config
+    import subprocess
+    subprocess.run(['pkill', '-f', 'vite'], capture_output=True)
+    
+    # Clear Vite cache
+    import shutil
+    vite_cache_dirs = ['/home/user/app/node_modules/.vite', '/home/user/app/.vite']
+    for cache_dir in vite_cache_dirs:
+        if os.path.exists(cache_dir):
+            shutil.rmtree(cache_dir)
+            print(f'✓ Cleared Vite cache: {cache_dir}')
+    
+    print('✓ Killed existing Vite processes and cleared cache')
+`);
+
     // Install dependencies if package.json exists
     if (projectFiles.files["package.json"]) {
       console.log("[V1 Project Sync API] Installing dependencies...");
@@ -416,6 +359,13 @@ process = subprocess.Popen(
 
 print(f'✓ Dev server started with PID: {process.pid}')
 print('Waiting for server to be ready...')
+
+# Log the command that was used to start the server
+print(f'📋 Dev server command: {" ".join(dev_command)}')
+
+# Verify Vite config is being used
+if 'vite' in " ".join(dev_command):
+    print('📋 Using Vite with E2B-compatible allowedHosts configuration')
 `);
 
     // Wait for dev server to be ready

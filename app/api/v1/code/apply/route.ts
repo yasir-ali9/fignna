@@ -713,6 +713,60 @@ print(f"\\nReturn code: {result.returncode}")
           }
         }
 
+        // Auto-save files from sandbox to project database after 3 seconds
+        setTimeout(async () => {
+          try {
+            await sendProgress({
+              type: "status",
+              message: "Auto-saving files to project...",
+            });
+
+            // Extract project ID from request URL or headers if available
+            const url = new URL(request.url);
+            const projectIdMatch = url.pathname.match(/\/projects\/([^\/]+)\//);
+
+            if (projectIdMatch) {
+              const projectId = projectIdMatch[1];
+              const saveResponse = await fetch(
+                `${
+                  process.env.NEXTAUTH_URL || "http://localhost:3000"
+                }/api/v1/projects/${projectId}/save`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Cookie: request.headers.get("cookie") || "",
+                  },
+                }
+              );
+
+              if (saveResponse.ok) {
+                const saveResult = await saveResponse.json();
+                console.log(
+                  `[V1 Code Apply API] Auto-saved ${
+                    saveResult.data?.filesCount || 0
+                  } files to project`
+                );
+
+                await sendProgress({
+                  type: "status",
+                  message: `Saved ${
+                    saveResult.data?.filesCount || 0
+                  } files to project`,
+                });
+              } else {
+                console.warn(
+                  "[V1 Code Apply API] Failed to auto-save files:",
+                  await saveResponse.text()
+                );
+              }
+            }
+          } catch (saveError) {
+            console.warn("[V1 Code Apply API] Auto-save failed:", saveError);
+            // Don't fail the entire application if save fails
+          }
+        }, 3000); // 3 second delay
+
         // Send final results
         await sendProgress({
           type: "complete",

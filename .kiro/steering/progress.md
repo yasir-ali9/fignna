@@ -60,3 +60,26 @@ This is a step-by-step guide for building the Figma + Loveable hybrid tool. Foll
 36. Implemented project sharing and collaboration features with user permissions.
 37. Created backup and restore functionality for project data and version history.
 
+## Critical Bug Fixes & Performance Optimizations (Latest Session)
+
+38. **Fixed Critical Data Loss Issue**: Resolved dangerous empty files bug where project files were being overwritten with empty content due to race conditions in chat manager auto-save mechanism.
+39. **Implemented Multi-Layer Protection**: Added validation checks in chat manager, projects manager, and API level to prevent saving empty files and protect user data integrity.
+40. **Eliminated Unnecessary API Calls**: Fixed duplicate PUT requests with empty payloads that were triggered during project initialization by removing problematic updateProjectMetadata calls.
+41. **Optimized Project Loading**: Reduced duplicate GET requests by removing unnecessary loadProject calls and simplifying useEffect dependencies in project page component.
+42. **Enhanced Auto-Save Architecture**: Implemented backend-to-backend auto-save mechanism where code apply and chat generate APIs automatically save files to database after 3-second delay.
+43. **Improved Sync API Logic**: Removed default scaffolding from sync API to ensure it only syncs actual project files from database, preventing override of user content with template files.
+44. **Added E2B Compatibility**: Fixed Vite configuration in sync API to include proper allowedHosts settings for E2B iframe embedding, resolving "Blocked request" errors.
+45. **Enhanced Loading States**: Improved preview panel to show loading spinner during sync operations instead of "no sandbox available" message for better user experience.
+46. **Streamlined API Naming**: Renamed save-from-sandbox API to simply "save" for cleaner endpoint structure and updated all references throughout codebase.
+47. **Implemented Proper Restart Functionality**: Created dedicated Vite restart API that properly restarts dev server instead of creating new sandbox, with cooldown protection and error handling.
+48. **Enhanced Debug Mode**: Updated debug functionality to switch to code mode for proper debugging experience instead of just console logging.
+49. **Optimized Chat Initialization**: Added guards to prevent duplicate chat initialization calls and simplified dependency arrays to reduce unnecessary re-renders.
+50. **Improved Sandbox Dropdown**: Enhanced sandbox dropdown with proper restart, debug, save, and sync functionality with appropriate loading states and error handling.
+
+## File Persistence & Data Integrity
+
+51. **Automatic File Synchronization**: Files are now automatically saved from sandbox to database through backend APIs after code generation or application.
+52. **Manual Save Option**: Users can manually save sandbox files to project database using "Save to Project" option in sandbox dropdown.
+53. **Protected Empty File Prevention**: Multiple validation layers prevent accidental saving of empty files that could cause data loss.
+54. **Robust Error Handling**: Comprehensive error handling and logging throughout the file save/sync pipeline for debugging and reliability.
+55. **Optimized Database Operations**: Streamlined project update operations to only modify necessary fields and prevent unnecessary database writes.

@@ -108,7 +108,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     hmr: false,
-    allowedHosts: ['.e2b.app', 'localhost', '127.0.0.1']
+    allowedHosts: ['.e2b.app', '.e2b.dev', 'localhost', '127.0.0.1']
   }
 })"""
 

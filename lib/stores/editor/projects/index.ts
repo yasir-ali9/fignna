@@ -99,6 +99,28 @@ export class ProjectsManager {
 
       this.isDirty = false;
       this.isLoading = false;
+
+      // Automatically sync project to sandbox for live preview
+      // This ensures existing projects have a running sandbox
+      console.log(
+        `[ProjectsManager] Auto-syncing project ${projectId} to sandbox...`
+      );
+      try {
+        await this.syncToSandbox();
+        console.log(
+          `[ProjectsManager] Project ${projectId} synced to sandbox successfully`
+        );
+      } catch (syncError) {
+        // Don't fail the entire load if sync fails - user can manually sync later
+        console.warn(
+          `[ProjectsManager] Auto-sync failed for project ${projectId}:`,
+          syncError
+        );
+        // Store sync error separately so UI can show it
+        this.error = `Project loaded but sandbox sync failed: ${
+          syncError instanceof Error ? syncError.message : "Unknown error"
+        }`;
+      }
     } catch (error) {
       this.error = error instanceof Error ? error.message : "Unknown error";
       this.isLoading = false;
@@ -145,29 +167,68 @@ export class ProjectsManager {
     this.error = null;
 
     try {
-      const updateData: UpdateProjectRequest = {
-        files: this.engine.files.getAllFiles(),
-        dependencies: this.engine.files.getDependencies(),
-      };
+      const allFiles = this.engine.files.getAllFiles();
 
-      // Include sandbox info if available
-      if (this.engine.sandbox.currentSandboxId) {
-        updateData.sandboxId = this.engine.sandbox.currentSandboxId;
-      }
-      if (this.engine.sandbox.previewUrl) {
-        updateData.previewUrl = this.engine.sandbox.previewUrl;
-      }
-
-      const updatedProject = await this.updateProject(
-        this.currentProject.id,
-        updateData
+      // Validate that we have actual file content before saving
+      const hasValidFiles = Object.values(allFiles).some(
+        (content) => typeof content === "string" && content.trim().length > 0
       );
-      this.currentProject = updatedProject;
+
+      if (!hasValidFiles && Object.keys(allFiles).length > 0) {
+        console.warn("Preventing save of empty files to avoid data loss");
+        this.isSaving = false;
+        return;
+      }
+
+      // Use changed files only to prevent overwriting unchanged files with empty content
+      const changedFiles = this.engine.files.getChangedFiles();
+
+      // If no files have changed, don't save
+      if (Object.keys(changedFiles).length === 0) {
+        console.log("[ProjectsManager] No files have changed, skipping save");
+        this.isSaving = false;
+        return;
+      }
+
+      console.log(
+        `[ProjectsManager] Saving ${
+          Object.keys(changedFiles).length
+        } changed files:`,
+        Object.keys(changedFiles)
+      );
+
+      // Use the new PATCH endpoint for safer file updates
+      const response = await fetch(
+        `/api/v1/projects/${this.currentProject.id}/files/update`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            files: changedFiles,
+            metadata: {
+              source: "editor",
+              updatedBy: "user",
+            },
+          }),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update files");
+      }
+
+      // Update project metadata
+      this.currentProject.version = result.data.version;
+      this.currentProject.lastSavedAt = new Date(result.data.lastSavedAt);
 
       // Update project in list
-      const index = this.projects.findIndex((p) => p.id === updatedProject.id);
+      const index = this.projects.findIndex(
+        (p) => p.id === this.currentProject!.id
+      );
       if (index !== -1) {
-        this.projects[index] = updatedProject;
+        this.projects[index] = { ...this.currentProject };
       }
 
       this.isDirty = false;
@@ -216,6 +277,44 @@ export class ProjectsManager {
       this.error =
         error instanceof Error ? error.message : "Failed to sync to sandbox";
       this.isSyncing = false;
+    }
+  }
+
+  // Save files from sandbox to project database
+  async saveFromSandbox() {
+    if (!this.currentProject || this.isSaving) return;
+
+    this.isSaving = true;
+    this.error = null;
+
+    try {
+      const response = await fetch(
+        `/api/v1/projects/${this.currentProject.id}/save`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to save from sandbox");
+      }
+
+      // Update project version info
+      this.currentProject.version = result.data.version;
+      this.currentProject.lastSavedAt = new Date(result.data.lastSavedAt);
+
+      // No need to reload project - we just saved files, project structure hasn't changed
+      console.log(
+        `Saved ${result.data.filesCount} files from sandbox to project`
+      );
+      this.isSaving = false;
+    } catch (error) {
+      this.error =
+        error instanceof Error ? error.message : "Failed to save from sandbox";
+      this.isSaving = false;
     }
   }
 

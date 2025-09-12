@@ -153,6 +153,40 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // CRITICAL SAFETY CHECK: Prevent saving empty files to avoid data loss
+    if (validationResult.data.files) {
+      const emptyFiles = Object.entries(validationResult.data.files).filter(
+        ([path, content]) =>
+          typeof content === "string" && content.trim().length === 0
+      );
+
+      const totalFiles = Object.keys(validationResult.data.files).length;
+      const emptyFileCount = emptyFiles.length;
+
+      // If more than 50% of files are empty, this is likely a bug
+      if (emptyFileCount > 0 && emptyFileCount / totalFiles > 0.5) {
+        console.error(
+          `[V1 Project API] BLOCKED: Attempt to save ${emptyFileCount}/${totalFiles} empty files for project ${id}. This would cause data loss.`
+        );
+        console.error(
+          `[V1 Project API] Empty files:`,
+          emptyFiles.map(([path]) => path)
+        );
+
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              "Cannot save mostly empty files - this would cause data loss",
+            details: `${emptyFileCount} out of ${totalFiles} files are empty. Use PATCH /files/update to update specific files instead.`,
+            emptyFiles: emptyFiles.map(([path]) => path),
+            version: "v1",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Update the project
     const project = await projectQueries.update(
       id,

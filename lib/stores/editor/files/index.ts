@@ -512,6 +512,7 @@ export class FilesManager {
 
   /**
    * Get all files as JSONB format for database storage
+   * WARNING: This method includes empty files and should be used carefully
    */
   getAllFiles(): Record<string, string> {
     const files: Record<string, string> = {};
@@ -536,6 +537,23 @@ export class FilesManager {
 
     addFilesFromTree(this.fileTree);
     return files;
+  }
+
+  /**
+   * Get only files that have been modified (changed files only)
+   * This is safer for database updates as it won't overwrite unchanged files
+   */
+  getChangedFiles(): Record<string, string> {
+    const changedFiles: Record<string, string> = {};
+
+    // Only include files that are open in tabs (these are the ones being edited)
+    this.openTabs.forEach((tab) => {
+      if (tab.isDirty || tab.content.trim().length > 0) {
+        changedFiles[tab.path] = tab.content;
+      }
+    });
+
+    return changedFiles;
   }
 
   /**

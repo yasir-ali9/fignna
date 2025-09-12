@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
+import { AppMode } from "@/lib/stores/editor/state";
 import {
   ContextMenu,
   useContextMenu,
@@ -55,16 +56,17 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
   const handleDebugSandbox = async () => {
     if (!sandbox.currentSandbox) return;
 
-    console.log("Debug sandbox:", sandbox.currentSandbox);
-    // TODO: Implement actual Daytona debug functionality
-    alert("Debug info logged to console. Check browser dev tools.");
+    // Switch to code mode for debugging
+    engine.state.setAppMode(AppMode.CODE);
+    console.log("Switched to code mode for debugging");
   };
 
   const handleRestartSandbox = async () => {
     try {
-      await sandbox.createSandbox();
+      await sandbox.restartViteServer();
     } catch (error) {
       console.error("Restart failed:", error);
+      alert("Failed to restart Vite server. Check console for details.");
     }
   };
 
@@ -136,26 +138,63 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
         });
       }
 
-      // Debug
+      // Debug (Switch to Code Mode)
       items.push({
-        label: "Debug",
+        label: "Debug Mode",
         icon: (
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M4.5 7.5L7 10l4.5-4.5" />
+            <path d="M8 1L4 5h2v6h4V5h2L8 1zM2 13h12v2H2v-2z" />
           </svg>
         ),
         onClick: handleDebugSandbox,
       });
 
-      // Restart
+      // Restart Vite Server
       items.push({
-        label: "Restart",
+        label: sandbox.isRestarting ? "Restarting..." : "Restart Vite",
         icon: (
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 3V1L5 4l3 3V5c2.2 0 4 1.8 4 4s-1.8 4-4 4-4-1.8-4-4H2c0 3.3 2.7 6 6 6s6-2.7 6-6-2.7-6-6-6z" />
           </svg>
         ),
         onClick: handleRestartSandbox,
+        disabled: sandbox.isRestarting,
+      });
+
+      // Save from Sandbox to Project
+      items.push({
+        label: engine.projects.isSaving ? "Saving..." : "Save to Project",
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 12l-4-4h3V2h2v6h3l-4 4zM2 14h12v2H2v-2z" />
+          </svg>
+        ),
+        onClick: async () => {
+          try {
+            await engine.projects.saveFromSandbox();
+          } catch (error) {
+            console.error("Manual save failed:", error);
+          }
+        },
+        disabled: engine.projects.isSaving || !engine.projects.currentProject,
+      });
+
+      // Sync Project to Sandbox
+      items.push({
+        label: engine.projects.isSyncing ? "Syncing..." : "Sync Project",
+        icon: (
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 1v6l3-3M8 1L5 4l3-3zM8 15V9l-3 3M8 15l3-3-3 3z" />
+          </svg>
+        ),
+        onClick: async () => {
+          try {
+            await engine.projects.syncToSandbox();
+          } catch (error) {
+            console.error("Manual sync failed:", error);
+          }
+        },
+        disabled: engine.projects.isSyncing,
       });
 
       // Refresh Sandbox
@@ -184,10 +223,7 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
     } else {
       // Create Sandbox
       items.push({
-        label:
-          isCreating || sandbox.isCreating
-            ? "Creating..."
-            : "Create Next.js App",
+        label: isCreating || sandbox.isCreating ? "Creating..." : "Create VM",
         icon: (
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M8 2v6m0 0v6m0-6h6m-6 0H2" />

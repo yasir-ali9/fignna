@@ -58,7 +58,8 @@ function ProjectPageInner() {
           );
         }
 
-        // Load project from database
+        // Load project from database and auto-sync to sandbox
+        // The loadProject method now automatically calls syncToSandbox
         await engine.projects.loadProject(projectId);
 
         if (engine.projects.currentProject) {
@@ -79,7 +80,7 @@ function ProjectPageInner() {
     if (projectId) {
       initializeProject();
     }
-  }, [projectId, engine.projects, engine.state]);
+  }, [projectId]);
 
   // Show loading state
   if (isLoading) {
@@ -87,7 +88,12 @@ function ProjectPageInner() {
       <div className="h-screen w-full flex items-center justify-center bg-bk-40">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fg-50 mx-auto mb-4"></div>
-          <div className="text-fg-50">Loading project...</div>
+          <div className="text-fg-50 mb-2">Loading project...</div>
+          {engine.projects.isSyncing && (
+            <div className="text-fg-60 text-sm">
+              Setting up sandbox environment...
+            </div>
+          )}
         </div>
       </div>
     );
