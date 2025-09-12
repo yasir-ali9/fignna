@@ -1,68 +1,57 @@
 "use client";
 
 import { observer } from "mobx-react-lite";
+import { useRouter } from "next/navigation";
 import { useTheme } from "@/components/context/theme-context";
 import {
-  ContextMenu,
-  useContextMenu,
-} from "@/components/common/dropdowns/context-menu";
+  ContextMenuNested,
+  useContextMenuNested,
+} from "@/components/common/dropdowns/context-menu-nesting";
 
-interface DropdownItem {
-  id: string;
-  label: string;
-  icon?: React.ReactNode;
-  disabled?: boolean;
-  submenu?: DropdownItem[];
-  shortcut?: string;
-  onClick?: () => void;
-}
-
-interface LogoDropdownProps {
-  items: DropdownItem[];
-}
-
-export const LogoDropdown = observer(({ items }: LogoDropdownProps) => {
+export const LogoDropdown = observer(() => {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
-  const { contextMenu, showContextMenu, hideContextMenu } = useContextMenu();
-
-  // Convert dropdown items to context menu items
-  const convertToContextMenuItems = (dropdownItems: DropdownItem[]) => {
-    return dropdownItems.flatMap((item) => {
-      if (item.submenu) {
-        // For theme submenu, handle special logic
-        if (item.id === "theme") {
-          return item.submenu.map((subItem) => ({
-            label: `${item.label} → ${subItem.label}`,
-            icon: subItem.icon,
-            disabled: subItem.disabled,
-            onClick: () => {
-              setTheme(subItem.id as "light" | "dark" | "system");
-              subItem.onClick?.();
-            },
-          }));
-        }
-        // For other submenus, flatten them
-        return item.submenu.map((subItem) => ({
-          label: `${item.label} → ${subItem.label}`,
-          icon: subItem.icon,
-          disabled: subItem.disabled,
-          onClick: () => subItem.onClick?.(),
-        }));
-      }
-      return {
-        label: item.label,
-        icon: item.icon,
-        disabled: item.disabled,
-        onClick: () => item.onClick?.(),
-      };
-    });
-  };
+  const { contextMenu, showContextMenu, hideContextMenu } =
+    useContextMenuNested();
 
   // Handle logo button click to show context menu
   const handleLogoClick = (event: React.MouseEvent) => {
     event.preventDefault();
     showContextMenu(event);
   };
+
+  // Define menu items with Projects and Theme options
+  const menuItems = [
+    {
+      id: "projects",
+      label: "Projects",
+      onClick: () => router.push("/projects"),
+    },
+    {
+      id: "theme",
+      label: "Theme",
+      submenu: [
+        {
+          id: "system",
+          label: "System",
+          selected: theme === "system",
+          onClick: () => setTheme("system"),
+        },
+        {
+          id: "dark",
+          label: "Dark",
+          selected: theme === "dark",
+          onClick: () => setTheme("dark"),
+        },
+        {
+          id: "light",
+          label: "Light",
+          selected: theme === "light",
+          onClick: () => setTheme("light"),
+        },
+      ],
+    },
+  ];
 
   return (
     <>
@@ -103,8 +92,8 @@ export const LogoDropdown = observer(({ items }: LogoDropdownProps) => {
       </button>
 
       {/* Context Menu */}
-      <ContextMenu
-        items={convertToContextMenuItems(items)}
+      <ContextMenuNested
+        items={menuItems}
         isOpen={contextMenu.isOpen}
         position={contextMenu.position}
         onClose={hideContextMenu}
