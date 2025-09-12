@@ -30,24 +30,27 @@ export interface IframeChildMethods {
   getElementAtLoc: (x: number, y: number) => DomElement | null;
   getElementBySelector: (selector: string) => DomElement | null;
   getAllElements: () => DomElement[];
-  
+
   // DOM manipulation
-  updateElement: (selector: string, properties: Record<string, any>) => boolean;
+  updateElement: (
+    selector: string,
+    properties: Record<string, unknown>
+  ) => boolean;
   updateStyle: (selector: string, styles: Record<string, string>) => boolean;
-  
+
   // Layer management
   processDom: () => void;
   buildLayerTree: () => LayerNode;
-  
+
   // Element highlighting
   highlightElement: (selector: string) => void;
   unhighlightElement: (selector: string) => void;
   clearHighlights: () => void;
-  
+
   // Selection
   selectElement: (selector: string) => void;
   clearSelection: () => void;
-  
+
   // Communication setup
   setFrameId: (id: string) => void;
   initialize: () => void;
@@ -57,7 +60,7 @@ export interface IframeChildMethods {
 export interface IframeParentMethods {
   // Frame management
   getFrameId: () => string;
-  
+
   // Event handlers
   onElementSelected: (element: DomElement) => void;
   onElementHovered: (element: DomElement | null) => void;
@@ -78,4 +81,4 @@ export type PromisifiedParentMethods = {
   ) => Promise<ReturnType<IframeParentMethods[K]>>;
 };
 
-export const IFRAME_COMMUNICATION_CHANNEL = 'FIGNNA_IFRAME_COMM';
+export const IFRAME_COMMUNICATION_CHANNEL = "FIGNNA_IFRAME_COMM";

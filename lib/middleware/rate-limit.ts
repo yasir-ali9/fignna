@@ -21,7 +21,6 @@ export function createRateLimit(config: RateLimitConfig) {
       request.headers.get("x-real-ip") ||
       "unknown";
     const now = Date.now();
-    const windowStart = now - config.windowMs;
 
     // Clean up old entries
     for (const [key, value] of requestCounts.entries()) {

@@ -707,7 +707,7 @@ export const messageQueries = {
     data: {
       role: "user" | "assistant" | "system";
       content: string;
-      metadata?: any;
+      metadata?: Record<string, unknown>;
     }
   ) {
     try {
@@ -846,7 +846,7 @@ export const messageQueries = {
   async update(
     messageId: string,
     userId: string,
-    data: { content?: string; metadata?: any }
+    data: { content?: string; metadata?: Record<string, unknown> }
   ) {
     try {
       // Verify ownership first

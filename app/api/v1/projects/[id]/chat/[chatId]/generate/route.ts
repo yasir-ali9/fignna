@@ -148,7 +148,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const writer = stream.writable.getWriter();
 
     // Function to send progress updates
-    const sendProgress = async (data: any) => {
+    const sendProgress = async (data: Record<string, unknown>) => {
       const message = `data: ${JSON.stringify({ ...data, version: "v1" })}\n\n`;
       await writer.write(encoder.encode(message));
     };
@@ -274,11 +274,11 @@ Remember: You are generating production-ready code that will be immediately exec
           model: aiModel,
           messages: [
             {
-              role: "system",
+              role: "system" as const,
               content: systemPrompt,
             },
             {
-              role: "user",
+              role: "user" as const,
               content: prompt,
             },
           ],

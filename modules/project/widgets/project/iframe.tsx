@@ -91,7 +91,10 @@ export const Iframe = observer(
       };
 
       comm.registerMethods(
-        parentMethods as unknown as Record<string, Function>
+        parentMethods as unknown as Record<
+          string,
+          (...args: unknown[]) => unknown
+        >
       );
 
       // Try to initialize communication with the iframe
