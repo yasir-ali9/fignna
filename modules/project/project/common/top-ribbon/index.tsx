@@ -53,43 +53,12 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
     }
   }, [engine.state.isEditingProjectName]);
 
-  // Dropdown menu items
-  const dropdownItems = [
-    {
-      id: "theme",
-      label: "Theme",
-      submenu: [
-        {
-          id: "light",
-          label: "Light",
-          onClick: () => console.log("Light theme selected"),
-        },
-        {
-          id: "dark",
-          label: "Dark",
-          onClick: () => console.log("Dark theme selected"),
-        },
-        {
-          id: "system",
-          label: "System",
-          onClick: () => console.log("System theme selected"),
-        },
-      ],
-    },
-    {
-      id: "view",
-      label: "View",
-      disabled: true,
-      submenu: [],
-    },
-  ];
-
   return (
     <div className="h-10 bg-bk-50 border-b border-bd-50 flex px-2 flex-shrink-0 relative z-[100]">
       {/* Left Section */}
       <div className="flex items-center h-full">
         <div className="flex items-center h-full">
-          <LogoDropdown items={dropdownItems} />
+          <LogoDropdown />
         </div>
 
         {/* Project Name */}
