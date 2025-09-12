@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { useTheme } from "@/components/context/theme-context";
+import {
+  ContextMenu,
+  useContextMenu,
+} from "@/components/common/dropdowns/context-menu";
 
 interface DropdownItem {
   id: string;
@@ -19,50 +22,53 @@ interface LogoDropdownProps {
 }
 
 export const LogoDropdown = observer(({ items }: LogoDropdownProps) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const { theme, setTheme } = useTheme();
+  const { contextMenu, showContextMenu, hideContextMenu } = useContextMenu();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-        setOpenSubmenu(null);
+  // Convert dropdown items to context menu items
+  const convertToContextMenuItems = (dropdownItems: DropdownItem[]) => {
+    return dropdownItems.flatMap((item) => {
+      if (item.submenu) {
+        // For theme submenu, handle special logic
+        if (item.id === "theme") {
+          return item.submenu.map((subItem) => ({
+            label: `${item.label} → ${subItem.label}`,
+            icon: subItem.icon,
+            disabled: subItem.disabled,
+            onClick: () => {
+              setTheme(subItem.id as "light" | "dark" | "system");
+              subItem.onClick?.();
+            },
+          }));
+        }
+        // For other submenus, flatten them
+        return item.submenu.map((subItem) => ({
+          label: `${item.label} → ${subItem.label}`,
+          icon: subItem.icon,
+          disabled: subItem.disabled,
+          onClick: () => subItem.onClick?.(),
+        }));
       }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleItemClick = (item: DropdownItem) => {
-    if (item.disabled) return;
-
-    if (item.submenu) {
-      setOpenSubmenu(openSubmenu === item.id ? null : item.id);
-    } else {
-      item.onClick?.();
-      setIsOpen(false);
-      setOpenSubmenu(null);
-    }
+      return {
+        label: item.label,
+        icon: item.icon,
+        disabled: item.disabled,
+        onClick: () => item.onClick?.(),
+      };
+    });
   };
 
-  const handleSubmenuItemClick = (item: DropdownItem) => {
-    if (item.disabled) return;
-    item.onClick?.();
-    setIsOpen(false);
-    setOpenSubmenu(null);
+  // Handle logo button click to show context menu
+  const handleLogoClick = (event: React.MouseEvent) => {
+    event.preventDefault();
+    showContextMenu(event);
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <>
       {/* Logo Button */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleLogoClick}
         className="flex items-center gap-1 pl-1 px-1.5 py-1.5 hover:bg-bk-40 rounded-lg transition-colors group cursor-pointer"
       >
         {/* Fignna Logo */}
@@ -82,11 +88,7 @@ export const LogoDropdown = observer(({ items }: LogoDropdownProps) => {
         </div>
 
         {/* Chevron Down */}
-        <div
-          className={`w-3 h-3 text-fg-60 group-hover:text-fg-50 transition-transform duration-200 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        >
+        <div className="w-3 h-3 text-fg-60 group-hover:text-fg-50 transition-transform duration-200">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
             <path
               d="M3 4.5L6 7.5L9 4.5"
@@ -100,131 +102,13 @@ export const LogoDropdown = observer(({ items }: LogoDropdownProps) => {
         </div>
       </button>
 
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute top-full left-0 mt-1 w-56 bg-bk-40 border border-bd-50 rounded-lg shadow-xl backdrop-blur-sm z-50 py-1">
-          {items.map((item) => (
-            <div key={item.id} className="relative">
-              <button
-                onClick={() => handleItemClick(item)}
-                disabled={item.disabled}
-                className={`
-                                    w-full flex items-center justify-between px-3 py-2 text-xs text-left
-                                    ${
-                                      item.disabled
-                                        ? "text-fg-60 cursor-not-allowed"
-                                        : "text-fg-50 hover:text-fg-30 hover:bg-bk-30"
-                                    }
-                                    ${
-                                      openSubmenu === item.id
-                                        ? "bg-bk-30 text-fg-30"
-                                        : ""
-                                    }
-                                    transition-colors
-                                `}
-              >
-                <div className="flex items-center gap-2">
-                  {item.icon && <div className="w-4 h-4">{item.icon}</div>}
-                  <span>{item.label}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  {item.shortcut && (
-                    <span className="text-xs text-fg-60">{item.shortcut}</span>
-                  )}
-                  {item.submenu && (
-                    <div className="w-3 h-3 text-fg-60">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="currentColor"
-                      >
-                        <path
-                          d="M4.5 3L7.5 6L4.5 9"
-                          stroke="currentColor"
-                          strokeWidth="1"
-                          fill="none"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </button>
-
-              {/* Submenu */}
-              {item.submenu && openSubmenu === item.id && (
-                <div className="absolute left-full top-0 ml-1 w-48 bg-bk-40 border border-bd-50 rounded-lg shadow-xl backdrop-blur-sm py-1">
-                  {item.submenu.map((subItem) => {
-                    const isSelected =
-                      item.id === "theme" &&
-                      ((subItem.id === "light" && theme === "light") ||
-                        (subItem.id === "dark" && theme === "dark") ||
-                        (subItem.id === "system" && theme === "system"));
-
-                    return (
-                      <button
-                        key={subItem.id}
-                        onClick={() => {
-                          if (item.id === "theme") {
-                            setTheme(subItem.id as "light" | "dark" | "system");
-                          }
-                          handleSubmenuItemClick(subItem);
-                        }}
-                        disabled={subItem.disabled}
-                        className={`
-                                                    w-full flex items-center justify-between px-3 py-2 text-xs text-left
-                                                    ${
-                                                      subItem.disabled
-                                                        ? "text-fg-60 cursor-not-allowed"
-                                                        : isSelected
-                                                        ? "text-fg-30 bg-bk-30"
-                                                        : "text-fg-50 hover:text-fg-30 hover:bg-bk-30"
-                                                    }
-                                                    transition-colors
-                                                `}
-                      >
-                        <div className="flex items-center gap-2">
-                          {subItem.icon && (
-                            <div className="w-4 h-4">{subItem.icon}</div>
-                          )}
-                          <span>{subItem.label}</span>
-                          {isSelected && (
-                            <div className="w-3 h-3 text-fg-50">
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 12 12"
-                                fill="currentColor"
-                              >
-                                <path
-                                  d="M10 3L4.5 8.5L2 6"
-                                  stroke="currentColor"
-                                  strokeWidth="1.5"
-                                  fill="none"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        {subItem.shortcut && (
-                          <span className="text-xs text-fg-60">
-                            {subItem.shortcut}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      {/* Context Menu */}
+      <ContextMenu
+        items={convertToContextMenuItems(items)}
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        onClose={hideContextMenu}
+      />
+    </>
   );
 });

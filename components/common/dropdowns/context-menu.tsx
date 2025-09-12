@@ -32,7 +32,7 @@ export function ContextMenu({
       }
     };
 
-    const handleEscape = (event: KeyboardEvent) => {
+    const handleEscape = (event: KeyboardEvent): void => {
       if (event.key === "Escape") {
         onClose();
       }
