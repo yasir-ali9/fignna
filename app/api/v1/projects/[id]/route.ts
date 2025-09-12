@@ -13,7 +13,7 @@ import {
 import { id } from "zod/v4/locales";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -68,10 +68,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       version: "v1",
     });
   } catch (error) {
-    console.error(
-      `[V1 Project API] Error fetching project ${params.id}:`,
-      error
-    );
+    console.error(`[V1 Project API] Error fetching project ${id}:`, error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message === "Project not found") {

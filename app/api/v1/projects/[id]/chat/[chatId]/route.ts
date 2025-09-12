@@ -13,7 +13,7 @@ import {
 } from "@/lib/db";
 
 interface RouteParams {
-  params: { id: string; chatId: string };
+  params: Promise<{ id: string; chatId: string }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {

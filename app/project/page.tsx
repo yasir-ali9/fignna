@@ -13,13 +13,17 @@ import { observer } from "mobx-react-lite";
 interface Project {
   id: string;
   name: string;
-  description: string | null;
+  description?: string;
   userId: string;
-  sandboxId: string | null;
-  previewUrl: string | null;
+  sandboxId?: string;
+  previewUrl?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+  files: Record<string, string>;
+  dependencies: Record<string, string>;
+  version: number;
+  lastSavedAt: Date;
 }
 
 function ProjectPageInner() {
@@ -32,11 +36,15 @@ function ProjectPageInner() {
     name: "Test Project",
     description: "A test project for development",
     userId: "test-user",
-    sandboxId: null,
-    previewUrl: null,
+    sandboxId: undefined,
+    previewUrl: undefined,
     isActive: true,
     createdAt: new Date(),
     updatedAt: new Date(),
+    files: {},
+    dependencies: {},
+    version: 1,
+    lastSavedAt: new Date(),
   };
 
   // Initialize sandbox when component mounts

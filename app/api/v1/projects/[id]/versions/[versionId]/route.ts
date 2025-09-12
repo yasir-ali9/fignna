@@ -9,7 +9,7 @@ import { versionQueries } from "@/lib/db";
 import { z } from "zod";
 
 interface RouteParams {
-  params: { id: string; versionId: string };
+  params: Promise<{ id: string; versionId: string }>;
 }
 
 const versionIdParamSchema = z.object({

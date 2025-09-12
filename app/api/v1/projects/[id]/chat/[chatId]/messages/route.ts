@@ -14,13 +14,16 @@ import {
 } from "@/lib/db";
 
 interface RouteParams {
-  params: { id: string; chatId: string };
+  params: Promise<{ id: string; chatId: string }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  let projectId: string | undefined;
+  let chatId: string | undefined;
+
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
-    const { id: projectId, chatId } = resolvedParams;
+    ({ id: projectId, chatId } = resolvedParams);
     console.log(
       `[V1 Messages API] Fetching messages for chat ${chatId} in project ${projectId}...`
     );
@@ -111,7 +114,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Messages API] Error fetching messages for chat ${params.chatId}:`,
+      `[V1 Messages API] Error fetching messages for chat ${chatId}:`,
       error
     );
 
@@ -140,9 +143,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
+  let projectId: string | undefined;
+  let chatId: string | undefined;
+
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
-    const { id: projectId, chatId } = resolvedParams;
+    ({ id: projectId, chatId } = resolvedParams);
     console.log(
       `[V1 Messages API] Creating new message for chat ${chatId} in project ${projectId}...`
     );
@@ -225,7 +231,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
   } catch (error) {
     console.error(
-      `[V1 Messages API] Error creating message for chat ${params.chatId}:`,
+      `[V1 Messages API] Error creating message for chat ${chatId}:`,
       error
     );
 

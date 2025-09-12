@@ -1,5 +1,6 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import type { EditorEngine } from "../index";
+import type { FileInfo } from "@/lib/types/file-manifest";
 
 // File tree node for the file explorer
 export interface FileNode {
@@ -119,7 +120,7 @@ export class FilesManager {
   /**
    * Build hierarchical file tree from flat file list
    */
-  private buildFileTree(files: any[]): FileNode[] {
+  private buildFileTree(files: FileInfo[]): FileNode[] {
     const tree: FileNode[] = [];
     const folderMap = new Map<string, FileNode>();
 
@@ -441,20 +442,12 @@ export class FilesManager {
   /**
    * Set files from project data (JSONB format)
    */
-  setFiles(filesData: Record<string, string> | any[]) {
+  setFiles(filesData: Record<string, string> | FileInfo[]) {
     runInAction(() => {
       if (Array.isArray(filesData)) {
         // Legacy format - convert to file tree
         const processedFiles = filesData.map((file) => ({
           ...file,
-          createdAt:
-            typeof file.createdAt === "string"
-              ? new Date(file.createdAt)
-              : file.createdAt,
-          updatedAt:
-            typeof file.updatedAt === "string"
-              ? new Date(file.updatedAt)
-              : file.updatedAt,
         }));
         this.fileTree = this.buildFileTree(processedFiles);
       } else {

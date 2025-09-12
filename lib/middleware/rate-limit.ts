@@ -17,7 +17,9 @@ const requestCounts = new Map<string, { count: number; resetTime: number }>();
 export function createRateLimit(config: RateLimitConfig) {
   return function rateLimit(request: NextRequest): NextResponse | null {
     const ip =
-      request.ip || request.headers.get("x-forwarded-for") || "unknown";
+      request.headers.get("x-forwarded-for") ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
     const now = Date.now();
     const windowStart = now - config.windowMs;
 

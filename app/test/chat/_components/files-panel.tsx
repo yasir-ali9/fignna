@@ -49,7 +49,7 @@ export function FilesPanel({ projectData }: FilesPanelProps) {
                   <pre className="text-fg-60 text-[9px] font-mono whitespace-pre-wrap overflow-x-auto max-h-32 overflow-y-auto">
                     {(content as string).length > 500
                       ? (content as string).substring(0, 500) + "..."
-                      : content}
+                      : (content as string)}
                   </pre>
                 </div>
               </div>

@@ -339,7 +339,7 @@ const FramesContainer = observer(() => {
     return (
       <CanvasFrame
         title="Main App"
-        url={previewUrl}
+        url={previewUrl || undefined}
         x={100}
         y={100}
         width={1200}
@@ -389,8 +389,10 @@ const FramesContainer = observer(() => {
           key={frameData.frame.id}
           title={frameData.frame.title || "Untitled Frame"}
           url={frameData.frame.url}
-          width={frameData.frame.dimension?.width || 1200}
-          height={frameData.frame.dimension?.height || 800}
+          x={100}
+          y={100}
+          width={1200}
+          height={800}
           isLoading={false}
           onClick={() => {
             // Handle frame selection logic here

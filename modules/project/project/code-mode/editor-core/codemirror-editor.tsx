@@ -30,7 +30,7 @@ try {
  */
 export const CodeMirrorEditor = observer(() => {
   const engine = useEditorEngine();
-  const { resolvedTheme } = useTheme(); // Use your theme context
+  const { theme } = useTheme(); // Use your theme context
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<any>(null);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -172,7 +172,7 @@ export const CodeMirrorEditor = observer(() => {
   // Track the current file ID, text wrap state, and theme to prevent unnecessary recreations
   const currentFileIdRef = useRef<string | null>(null);
   const currentTextWrapRef = useRef<boolean>(false);
-  const currentThemeRef = useRef<string>(resolvedTheme);
+  const currentThemeRef = useRef<string>(theme);
 
   // Initialize/update editor when active file changes
   useEffect(() => {
@@ -202,7 +202,7 @@ export const CodeMirrorEditor = observer(() => {
     if (
       currentFileIdRef.current === activeFile.id &&
       currentTextWrapRef.current === engine.files.isTextWrapEnabled &&
-      currentThemeRef.current === resolvedTheme &&
+      currentThemeRef.current === theme &&
       viewRef.current
     ) {
       const currentContent = viewRef.current.state.doc.toString();
@@ -243,7 +243,7 @@ export const CodeMirrorEditor = observer(() => {
     viewRef.current = view;
     currentFileIdRef.current = activeFile.id;
     currentTextWrapRef.current = engine.files.isTextWrapEnabled;
-    currentThemeRef.current = resolvedTheme;
+    currentThemeRef.current = theme;
 
     // Focus the editor
     view.focus();
@@ -263,20 +263,15 @@ export const CodeMirrorEditor = observer(() => {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [
-    activeFile,
-    createExtensions,
-    engine.files.isTextWrapEnabled,
-    resolvedTheme,
-  ]);
+  }, [activeFile, createExtensions, engine.files.isTextWrapEnabled, theme]);
 
   // Log theme changes for debugging
   useEffect(() => {
-    if (currentThemeRef.current !== resolvedTheme) {
-      console.log("🎨 Editor theme changed to:", resolvedTheme);
-      currentThemeRef.current = resolvedTheme;
+    if (currentThemeRef.current !== theme) {
+      console.log("🎨 Editor theme changed to:", theme);
+      currentThemeRef.current = theme;
     }
-  }, [resolvedTheme]);
+  }, [theme]);
 
   // Cleanup on unmount
   useEffect(() => {

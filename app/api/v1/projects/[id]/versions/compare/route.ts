@@ -9,7 +9,7 @@ import { versionQueries, projectIdParamSchema } from "@/lib/db";
 import { z } from "zod";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 const compareRequestSchema = z.object({

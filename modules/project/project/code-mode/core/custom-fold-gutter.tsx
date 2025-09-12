@@ -166,7 +166,7 @@ export function createLucideReactFoldGutter() {
 
     // Add DOM event handlers for more reliable hover detection
     EditorView.domEventHandlers({
-      mouseover: (event, view) => {
+      mouseover: (event: MouseEvent, view: any) => {
         const target = event.target as HTMLElement;
         const gutters = view.dom.querySelector(".cm-gutters");
 
@@ -183,7 +183,7 @@ export function createLucideReactFoldGutter() {
         }
       },
 
-      mouseout: (event, view) => {
+      mouseout: (event: MouseEvent, view: any) => {
         const target = event.target as HTMLElement;
         const relatedTarget = event.relatedTarget as HTMLElement;
         const gutters = view.dom.querySelector(".cm-gutters");

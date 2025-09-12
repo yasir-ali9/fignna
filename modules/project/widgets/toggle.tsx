@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useTheme } from "@/components/context/theme-context";
 
 export default function Toggle() {
-  const { resolvedTheme, toggleTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function Toggle() {
 
   if (!mounted) return null;
 
-  const isDark = resolvedTheme === "dark";
+  const isDark = theme === "dark";
 
   return (
     <button

@@ -24,7 +24,7 @@ interface ApiEndpoint {
   method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
   description: string;
-  category: "Projects" | "Files" | "Utility";
+  category: "Projects" | "Files" | "Utility" | "Sync";
 }
 
 const API_ENDPOINTS: ApiEndpoint[] = [

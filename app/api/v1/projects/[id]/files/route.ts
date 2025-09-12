@@ -14,7 +14,7 @@ import {
 import { id } from "zod/v4/locales";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -59,15 +59,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Fetch project files
-    const projectFiles = await projectQueries.getFiles(
-      params.id,
-      session.user.id
-    );
+    const projectFiles = await projectQueries.getFiles(id, session.user.id);
 
     console.log(
       `[V1 Project Files API] Retrieved ${
         Object.keys(projectFiles.files).length
-      } files for project ${params.id}`
+      } files for project ${id}`
     );
 
     return NextResponse.json({

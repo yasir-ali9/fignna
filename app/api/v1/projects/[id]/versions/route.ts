@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 import { versionQueries, projectIdParamSchema } from "@/lib/db";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // GET /api/v1/projects/[id]/versions - List project versions

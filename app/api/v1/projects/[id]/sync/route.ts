@@ -9,7 +9,7 @@ import { auth } from "@/lib/auth";
 import { projectQueries, versionQueries, projectIdParamSchema } from "@/lib/db";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Store active sandbox globally
@@ -21,6 +21,7 @@ declare global {
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
   let sandbox: Sandbox | null = null;
+  let id: string | undefined;
 
   try {
     // Debug params
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       Object.keys(resolvedParams || {})
     );
 
-    const id = resolvedParams?.id;
+    id = resolvedParams?.id;
     console.log(`[V1 Project Sync API] Extracted ID: ${id}`);
 
     // Get current session
@@ -425,12 +426,12 @@ print('Waiting for server to be ready...')
     global.sandboxData = {
       sandboxId,
       url: `https://${host}`,
-      projectId: params.id,
+      projectId: id,
     };
 
     // Update project with sandbox info
     const previewUrl = `https://${host}`;
-    await projectQueries.update(params.id, session.user.id, {
+    await projectQueries.update(id, session.user.id, {
       sandboxId,
       previewUrl,
     });
@@ -442,7 +443,7 @@ print('Waiting for server to be ready...')
     return NextResponse.json({
       success: true,
       data: {
-        projectId: params.id,
+        projectId: id,
         sandboxId,
         previewUrl,
         filesCount: Object.keys(projectFiles.files).length,
@@ -452,10 +453,7 @@ print('Waiting for server to be ready...')
       version: "v1",
     });
   } catch (error) {
-    console.error(
-      `[V1 Project Sync API] Error syncing project ${params.id}:`,
-      error
-    );
+    console.error(`[V1 Project Sync API] Error syncing project ${id}:`, error);
 
     // Clean up on error
     if (sandbox) {
@@ -479,9 +477,15 @@ print('Waiting for server to be ready...')
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
+  let id: string | undefined;
+
   try {
+    // Handle both sync and async params
+    const resolvedParams = params instanceof Promise ? await params : params;
+    id = resolvedParams?.id;
+
     console.log(
-      `[V1 Project Sync API] Getting sync status for project ${params.id}...`
+      `[V1 Project Sync API] Getting sync status for project ${id}...`
     );
 
     // Get current session
@@ -501,7 +505,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Validate project ID parameter
-    const paramResult = projectIdParamSchema.safeParse({ id: params.id });
+    const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
       return NextResponse.json(
         {
@@ -515,18 +519,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Get project info
-    const project = await projectQueries.getById(params.id, session.user.id);
+    const project = await projectQueries.getById(id, session.user.id);
 
     // Check if there's an active sandbox for this project
     const hasActiveSandbox =
       global.activeSandbox &&
       global.sandboxData &&
-      global.sandboxData.projectId === params.id;
+      global.sandboxData.projectId === id;
 
     return NextResponse.json({
       success: true,
       data: {
-        projectId: params.id,
+        projectId: id,
         sandboxId: project.sandboxId,
         previewUrl: project.previewUrl,
         isActive: hasActiveSandbox,
@@ -538,7 +542,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Project Sync API] Error getting sync status for project ${params.id}:`,
+      `[V1 Project Sync API] Error getting sync status for project ${id}:`,
       error
     );
 

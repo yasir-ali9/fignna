@@ -8,7 +8,7 @@ import { auth } from "@/lib/auth";
 import { versionQueries, projectIdParamSchema } from "@/lib/db";
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // POST /api/v1/projects/[id]/versions/cleanup - Clean up old versions

@@ -28,7 +28,7 @@ export function enhanceGoogleImageUrl(
 
     // Return original URL if it's from a trusted domain
     return url;
-  } catch (error) {
+  } catch {
     // Invalid URL format
     console.warn("Invalid image URL provided:", url);
     return undefined;

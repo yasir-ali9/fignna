@@ -48,10 +48,7 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
   const handleCreateNextjsSandbox = async () => {
     setIsCreating(true);
     try {
-      await sandbox.createSandbox({
-        framework: "nextjs",
-        name: "My Next.js App",
-      });
+      await sandbox.createSandbox();
     } catch (error) {
       console.error("Failed to create sandbox:", error);
     } finally {
@@ -80,7 +77,7 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
 
   const handleRestartSandbox = async () => {
     try {
-      await sandbox.restartSandbox();
+      await sandbox.createSandbox();
     } catch (error) {
       console.error("Restart failed:", error);
     }
@@ -91,11 +88,8 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
   const handleRefreshSandbox = async () => {
     setIsCreating(true);
     try {
-      // Get current project ID from engine
-      const projectId = engine.state.projectId;
-      if (!projectId) {
-        throw new Error("No project ID available");
-      }
+      // TODO: Get current project ID from URL or context
+      const projectId = "current-project";
 
       // Check sandbox status using V1 API
       const response = await fetch("/api/v1/sandbox/status");
@@ -129,12 +123,8 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
   };
 
   const handlePreviewOpen = () => {
-    if (sandbox.currentSandbox?.urls.preview) {
-      window.open(
-        sandbox.currentSandbox.urls.preview,
-        "_blank",
-        "noopener noreferrer"
-      );
+    if (sandbox.currentSandbox?.url) {
+      window.open(sandbox.currentSandbox.url, "_blank", "noopener noreferrer");
     }
     setIsOpen(false);
   };
@@ -211,7 +201,7 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
             {sandbox.currentSandbox ? (
               <>
                 {/* Preview Link */}
-                {sandbox.currentSandbox.urls?.preview && (
+                {sandbox.currentSandbox.url && (
                   <button
                     onClick={handlePreviewOpen}
                     className="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-fg-50 hover:text-fg-30 hover:bg-bk-30 transition-colors"

@@ -75,7 +75,7 @@ export interface MessageListItem {
   role: "user" | "assistant" | "system";
   content: string;
   sequence: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -84,5 +84,5 @@ export interface MessageContext {
   role: "user" | "assistant" | "system";
   content: string;
   sequence: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
 }

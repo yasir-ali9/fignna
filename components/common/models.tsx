@@ -22,7 +22,11 @@ export function Models({
   };
 
   const getDisplayName = (modelId: string) => {
-    return modelsConfig.modelDisplayNames[modelId] || modelId;
+    return (
+      modelsConfig.modelDisplayNames[
+        modelId as keyof typeof modelsConfig.modelDisplayNames
+      ] || modelId
+    );
   };
 
   return (

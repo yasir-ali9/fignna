@@ -765,7 +765,16 @@ export default function ChatPage() {
             ) : activeTab === "versions" ? (
               <VersionPanel
                 projectId={projectData?.id || null}
-                onMessage={addMessage}
+                onMessage={(
+                  message: string,
+                  type: "success" | "error" | "info"
+                ) => {
+                  addMessage({
+                    role: "system",
+                    content: message,
+                    metadata: {},
+                  });
+                }}
               />
             ) : null}
           </div>

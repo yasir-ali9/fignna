@@ -8,10 +8,10 @@ import { CodePanel } from "@/modules/project/project/code-mode";
 interface Project {
   id: string;
   name: string;
-  description: string | null;
+  description?: string;
   userId: string;
-  sandboxId: string | null;
-  previewUrl: string | null;
+  sandboxId?: string;
+  previewUrl?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
