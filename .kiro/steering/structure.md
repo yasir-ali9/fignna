@@ -1,22 +1,5 @@
 # Project Structure
 
-## Root Directory Layout
-
-```
-fignna.com/
-├── app/                 # Next.js App Router directory
-├── components/          # Reusable components
-│   ├── context/         # React context providers
-│   │   └── theme-context.tsx  # Theme state management and persistence
-│   └── common/          # Common UI components
-│       ├── toggle.tsx   # Theme toggle component
-│       └── error-boundary.tsx  # Error boundary for theme system
-├── public/              # Static assets
-├── .kiro/               # Kiro configuration and steering
-├── node_modules/        # Dependencies
-└── [config files]       # Various configuration files
-```
-
 ## App Directory (`/app`)
 
 Uses Next.js 13+ App Router convention:

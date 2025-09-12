@@ -96,3 +96,52 @@ pre,
 kbd {
   font-family: var(--font-mono), monospace;
 }
+
+/* Custom Scrollbar Styles - Theme Aware */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--bk-60));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--bd-50));
+  border-radius: 4px;
+  border: 1px solid rgb(var(--bk-60));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--fg-70));
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: rgb(var(--fg-60));
+}
+
+::-webkit-scrollbar-corner {
+  background: rgb(var(--bk-60));
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--bd-50)) rgb(var(--bk-60));
+}
+
+/* For better scrollbar visibility in dark mode */
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgb(var(--fg-70));
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--fg-60));
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:active {
+  background: rgb(var(--fg-50));
+}

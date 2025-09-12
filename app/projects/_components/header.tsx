@@ -1,6 +1,10 @@
+import { observer } from "mobx-react-lite";
 import { useTheme } from "@/components/context/theme-context";
 import { enhanceGoogleImageUrl } from "@/lib/utils";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
+// Interface for user data passed to header component
 interface HeaderProps {
   user: {
     name: string;
@@ -9,25 +13,48 @@ interface HeaderProps {
   };
 }
 
-export default function Header({ user }: HeaderProps) {
+// Header component with theme toggle and user profile display
+const Header = observer(({ user }: HeaderProps) => {
+  // Get theme context and router for navigation
   const { theme, toggleTheme } = useTheme();
+  const router = useRouter();
+
+  // Enhance Google profile image URL for better quality
   const enhancedImageUrl = enhanceGoogleImageUrl(user.image, 96);
 
   return (
-    <header className="bg-bk-40 border-b border-bd-50">
-      <div className="container mx-auto px-4 py-4">
+    <header className="bg-bk-60">
+      <div className="max-w-6xl mx-auto px-8 py-4">
         <div className="flex items-center justify-between">
-          {/* Left side - App branding */}
+          {/* Left side - Logo */}
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-fg-70">fignna</h1>
+            {/* Application logo icon with theme-aware coloring */}
+            <button
+              className="w-6 h-6 text-fg-60 cursor-pointer hover:text-fg-50 transition-colors focus:outline-none"
+              aria-label="Go to home page"
+              onClick={() => router.push("/")}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M9.33898 7.76271L9.33898 6.76271L7.33898 6.76271L7.33898 7.76271L8.33898 7.76271L9.33898 7.76271ZM14.7627 9.11864L14.7627 8.11864L12.7627 8.11864L12.7627 9.11864L13.7627 9.11864L14.7627 9.11864ZM7.29289 6.71662L6.58579 7.42373L8 8.83794L8.70711 8.13084L8 7.42373L7.29289 6.71662ZM13.0556 7.73357L12.3485 8.44068L13.7627 9.85489L14.4698 9.14778L13.7627 8.44068L13.0556 7.73357ZM8.33898 22L9.33898 22L9.33898 7.76271L8.33898 7.76271L7.33898 7.76271L7.33898 22L8.33898 22ZM13.7627 22L14.7627 22L14.7627 9.11864L13.7627 9.11864L12.7627 9.11864L12.7627 22L13.7627 22ZM13.4237 2L12.7166 1.29289L7.29289 6.71662L8 7.42373L8.70711 8.13084L14.1308 2.70711L13.4237 2ZM19.1864 3.01695L18.4793 2.30984L13.0556 7.73357L13.7627 8.44068L14.4698 9.14778L19.8935 3.72406L19.1864 3.01695Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </button>
           </div>
 
-          {/* Right side - Theme toggle and User info */}
-          <div className="flex items-center gap-4">
+          {/* Right side - Theme toggle and User profile */}
+          <div className="flex items-center gap-3">
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-md hover:bg-bk-60 transition-colors duration-200 cursor-pointer"
+              className="p-2 rounded-md hover:bg-bk-50 transition-colors duration-200 cursor-pointer focus:outline-none"
               aria-label={`Switch to ${
                 theme === "light" ? "dark" : "light"
               } theme`}
@@ -35,7 +62,7 @@ export default function Header({ user }: HeaderProps) {
               {theme === "light" ? (
                 // Moon icon for dark mode
                 <svg
-                  className="w-5 h-5 text-fg-60"
+                  className="w-4 h-4 text-fg-60"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -50,7 +77,7 @@ export default function Header({ user }: HeaderProps) {
               ) : (
                 // Sun icon for light mode
                 <svg
-                  className="w-5 h-5 text-fg-60"
+                  className="w-4 h-4 text-fg-60"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -65,33 +92,39 @@ export default function Header({ user }: HeaderProps) {
               )}
             </button>
 
-            {/* User info */}
-            <div className="flex items-center gap-3">
-              {/* User name */}
-              <span className="text-fg-60 font-medium hidden sm:block">
-                {user.name}
-              </span>
-
-              {/* Profile picture */}
-              <div className="flex items-center">
-                {enhancedImageUrl ? (
-                  <img
-                    src={enhancedImageUrl}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full border-2 border-bd-50"
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-ac-01 flex items-center justify-center border-2 border-bd-50">
-                    <span className="text-white text-sm font-medium">
-                      {user.name.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* Profile picture with interactive hover state */}
+            <button
+              className="flex items-center cursor-pointer hover:opacity-80 transition-opacity focus:outline-none"
+              aria-label={`User profile menu for ${user.name}`}
+              aria-haspopup="true"
+            >
+              {enhancedImageUrl ? (
+                <Image
+                  src={enhancedImageUrl}
+                  alt={user.name}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full"
+                  unoptimized={enhancedImageUrl.includes(
+                    "googleusercontent.com"
+                  )}
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-ac-01 flex items-center justify-center">
+                  <span className="text-white text-xs font-medium">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+            </button>
           </div>
         </div>
       </div>
     </header>
   );
-}
+});
+
+// Set display name for debugging
+Header.displayName = "Header";
+
+export default Header;
