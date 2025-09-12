@@ -929,7 +929,7 @@ export const projectUtils = {
         );
 
       return !!projectResult;
-    } catch (error) {
+    } catch {
       return false;
     }
   },

@@ -407,7 +407,7 @@ export class ChatManager {
                   }
                 }
               }
-            } catch (e) {
+            } catch {
               // Ignore parse errors
             }
           }

@@ -1,10 +1,11 @@
 // Simple penpal-style communication for iframe interaction
 
-import type {
-  IframeChildMethods,
-  IframeParentMethods,
-  IFRAME_COMMUNICATION_CHANNEL,
-} from "./penpal-types";
+// Import types are available but not used in this file
+// import type {
+//   IframeChildMethods,
+//   IframeParentMethods,
+//   IFRAME_COMMUNICATION_CHANNEL,
+// } from "./penpal-types";
 
 export class IframeCommunication {
   private messageId = 0;

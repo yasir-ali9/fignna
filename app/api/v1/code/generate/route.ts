@@ -376,7 +376,11 @@ Remember: You are generating production-ready code that will be immediately exec
         });
 
         // Configure streaming options based on model
-        const streamOptions: any = {
+        const streamOptions: Record<string, unknown> & {
+          model: unknown;
+          messages: Array<{ role: string; content: string }>;
+          maxTokens: number;
+        } = {
           model: aiModel,
           messages: [
             {
