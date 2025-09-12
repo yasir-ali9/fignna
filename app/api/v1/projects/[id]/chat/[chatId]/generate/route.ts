@@ -270,11 +270,7 @@ Remember: You are generating production-ready code that will be immediately exec
         assistantMessageId = assistantMessage.id;
 
         // Configure streaming options based on model
-        const streamOptions: Record<string, unknown> & {
-          model: unknown;
-          messages: Array<{ role: string; content: string }>;
-          maxTokens: number;
-        } = {
+        const streamOptions = {
           model: aiModel,
           messages: [
             {
@@ -291,12 +287,14 @@ Remember: You are generating production-ready code that will be immediately exec
 
         // Add temperature for non-reasoning models
         if (!model.startsWith("openai/gpt-5")) {
-          streamOptions.temperature = 0.7;
+          (streamOptions as Record<string, unknown>).temperature = 0.7;
         }
 
         // Add reasoning effort for GPT-5 models
         if (model.startsWith("openai/gpt-5")) {
-          streamOptions.experimental_providerMetadata = {
+          (
+            streamOptions as Record<string, unknown>
+          ).experimental_providerMetadata = {
             openai: {
               reasoningEffort: "high",
             },
