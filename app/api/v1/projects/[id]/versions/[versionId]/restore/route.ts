@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { versionQueries, projectIdParamSchema } from "@/lib/db";
+import { versionQueries } from "@/lib/db";
 import { z } from "zod";
 
 interface RouteParams {

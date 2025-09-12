@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { EditMode } from "@/modules/project/project/edit-mode";
 import { ViewModeComponent } from "@/modules/project/project/view-mode";
 import { TopRibbon } from "@/modules/project/project/common/top-ribbon";
@@ -23,7 +24,7 @@ interface Project {
 
 function ProjectPageInner() {
   const engine = useEditorEngine();
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   // Mock project data for testing
   const project: Project = {
@@ -51,12 +52,12 @@ function ProjectPageInner() {
       <div className="h-screen w-full flex items-center justify-center bg-bk-40">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-fg-30 mb-4">{error}</h1>
-          <a
+          <Link
             href="/"
             className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:from-purple-600 hover:to-pink-600 transition-colors"
           >
             Go Home
-          </a>
+          </Link>
         </div>
       </div>
     );

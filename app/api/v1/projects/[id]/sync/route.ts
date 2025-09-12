@@ -14,13 +14,13 @@ interface RouteParams {
 
 // Store active sandbox globally
 declare global {
-  var activeSandbox: any;
-  var sandboxData: any;
+  var activeSandbox: Sandbox | null;
+  var sandboxData: Record<string, unknown> | null;
   var existingFiles: Set<string>;
 }
 
 export async function POST(request: NextRequest, { params }: RouteParams) {
-  let sandbox: any = null;
+  let sandbox: Sandbox | null = null;
 
   try {
     // Debug params
@@ -250,16 +250,13 @@ code {
       } files to sync`
     );
 
-    // Kill existing sandbox if any 
+    // Kill existing sandbox if any
     if (global.activeSandbox) {
       console.log("[V1 Project Sync API] Killing existing sandbox...");
       try {
-        await global.activeSandbox.close();
-      } catch (e) {
-        console.error(
-          "[V1 Project Sync API] Failed to close existing sandbox:",
-          e
-        );
+        await global.activeSandbox.kill();
+      } catch {
+        console.error("[V1 Project Sync API] Failed to close existing sandbox");
       }
       global.activeSandbox = null;
     }
@@ -280,8 +277,12 @@ code {
       timeoutMs: 30 * 60 * 1000, // 30 minutes
     });
 
-    const sandboxId = (sandbox as any).sandboxId || Date.now().toString();
-    const host = (sandbox as any).getHost(5173); // Vite default port
+    const sandboxId =
+      (sandbox as Sandbox & { sandboxId: string }).sandboxId ||
+      Date.now().toString();
+    const host = (
+      sandbox as Sandbox & { getHost: (port: number) => string }
+    ).getHost(5173); // Vite default port
 
     console.log(`[V1 Project Sync API] Sandbox created: ${sandboxId}`);
     console.log(`[V1 Project Sync API] Sandbox host: ${host}`);

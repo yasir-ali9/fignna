@@ -42,4 +42,4 @@ next-env.d.ts
 
 # others
 /.vscode
-#/samples
+/samples

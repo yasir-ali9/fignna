@@ -84,7 +84,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       version: "v1",
     });
   } catch (error) {
-    console.error(`[V1 Chat API] Error fetching chat ${params.chatId}:`, error);
+    console.error(`[V1 Chat API] Error fetching chat:`, error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message.includes("not found")) {
@@ -188,7 +188,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       version: "v1",
     });
   } catch (error) {
-    console.error(`[V1 Chat API] Error updating chat ${chatId}:`, error);
+    console.error(`[V1 Chat API] Error updating chat:`, error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message.includes("not found")) {
@@ -275,7 +275,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       version: "v1",
     });
   } catch (error) {
-    console.error(`[V1 Chat API] Error deleting chat ${chatId}:`, error);
+    console.error(`[V1 Chat API] Error deleting chat:`, error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message.includes("not found")) {

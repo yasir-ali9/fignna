@@ -10,11 +10,6 @@ import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject } from "ai";
 import { z } from "zod";
-import type {
-  FileManifest,
-  SearchPlan,
-  EditType,
-} from "@/lib/types/file-manifest";
 
 // Initialize AI providers
 const groq = createGroq({
@@ -110,17 +105,20 @@ export async function POST(request: NextRequest) {
 
     // Create a summary of available files for the AI
     const validFiles = Object.entries(
-      manifest.files as Record<string, any>
-    ).filter(([path, info]) => {
+      manifest.files as Record<string, Record<string, unknown>>
+    ).filter(([path]) => {
       // Filter out invalid paths
       return path.includes(".") && !path.match(/\/\d+$/);
     });
 
     const fileSummary = validFiles
-      .map(([path, info]: [string, any]) => {
-        const componentName = info.componentInfo?.name || path.split("/").pop();
+      .map(([path, info]: [string, Record<string, unknown>]) => {
+        const componentInfo = info.componentInfo as
+          | { name?: string; childComponents?: string[] }
+          | undefined;
+        const componentName = componentInfo?.name || path.split("/").pop();
         const childComponents =
-          info.componentInfo?.childComponents?.join(", ") || "none";
+          componentInfo?.childComponents?.join(", ") || "none";
         return `- ${path} (${componentName}, renders: ${childComponents})`;
       })
       .join("\n");

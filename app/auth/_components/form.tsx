@@ -29,26 +29,27 @@ export default function AuthForm() {
         provider: "google",
         callbackURL: "/",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("authentication error:", err);
 
       // Handle different types of errors
       let errorMessage = "Failed to sign in with Google. Please try again.";
 
+      const errorObj = err as { message?: string };
       if (
-        err?.message?.includes("network") ||
-        err?.message?.includes("fetch")
+        errorObj?.message?.includes("network") ||
+        errorObj?.message?.includes("fetch")
       ) {
         errorMessage =
           "Network error. Please check your connection and try again.";
       } else if (
-        err?.message?.includes("popup") ||
-        err?.message?.includes("blocked")
+        errorObj?.message?.includes("popup") ||
+        errorObj?.message?.includes("blocked")
       ) {
         errorMessage = "Popup was blocked. Please allow popups and try again.";
       } else if (
-        err?.message?.includes("cancelled") ||
-        err?.message?.includes("closed")
+        errorObj?.message?.includes("cancelled") ||
+        errorObj?.message?.includes("closed")
       ) {
         errorMessage = "Sign-in was cancelled. Please try again.";
       }

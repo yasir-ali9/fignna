@@ -8,13 +8,13 @@ import { Sandbox } from "@e2b/code-interpreter";
 import type { SandboxState } from "@/lib/types/sandbox";
 import type { ConversationState } from "@/lib/types/conversation";
 
-// Global state declarations 
+// Global state declarations
 declare global {
   var conversationState: ConversationState | null;
-  var activeSandbox: any;
+  var activeSandbox: Sandbox | null;
   var existingFiles: Set<string>;
-  var sandboxState: SandboxState;
-  var sandboxData: any;
+  var sandboxState: SandboxState | null;
+  var sandboxData: Record<string, unknown> | null;
 }
 
 interface ParsedResponse {
@@ -311,7 +311,9 @@ export async function POST(request: NextRequest) {
 
         // Update sandbox data if needed
         if (!global.sandboxData) {
-          const host = (sandbox as any).getHost(5173);
+          const host = (
+            sandbox as Sandbox & { getHost: (port: number) => string }
+          ).getHost(5173);
           global.sandboxData = {
             sandboxId,
             url: `https://${host}`,
@@ -455,7 +457,10 @@ export async function POST(request: NextRequest) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 packages: uniquePackages,
-                sandboxId: sandboxId || (sandboxInstance as any).sandboxId,
+                sandboxId:
+                  sandboxId ||
+                  (sandboxInstance as Sandbox & { sandboxId: string })
+                    .sandboxId,
               }),
             });
 
@@ -486,7 +491,7 @@ export async function POST(request: NextRequest) {
                       if (data.type === "success" && data.installedPackages) {
                         results.packagesInstalled = data.installedPackages;
                       }
-                    } catch (e) {
+                    } catch {
                       // Ignore parse errors
                     }
                   }
@@ -595,7 +600,7 @@ export async function POST(request: NextRequest) {
               .replace(/"""/g, '\\"\\"\\"')
               .replace(/\$/g, "\\$");
 
-            await sandboxInstance.runCode(`
+            await sandboxInstance?.runCode(`
 import os
 os.makedirs(os.path.dirname("${fullPath}"), exist_ok=True)
 with open("${fullPath}", 'w') as f:
@@ -662,7 +667,7 @@ print(f"File written: ${fullPath}")
               });
 
               // Use E2B runCode for command execution
-              const result = await sandboxInstance.runCode(`
+              const result = await sandboxInstance?.runCode(`
 import subprocess
 import os
 
@@ -687,7 +692,10 @@ print(f"\\nReturn code: {result.returncode}")
               await sendProgress({
                 type: "command-complete",
                 command: cmd,
-                output: result.output || result.logs?.stdout?.join("\n") || "",
+                output:
+                  result?.logs?.stdout?.join("\n") ||
+                  result?.logs?.stderr?.join("\n") ||
+                  "",
                 success: true,
               });
             } catch (error) {

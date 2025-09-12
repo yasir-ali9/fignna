@@ -4,10 +4,11 @@
  */
 
 import { NextResponse } from "next/server";
+import type { Sandbox } from "@e2b/code-interpreter";
 
 declare global {
-  var activeSandbox: any;
-  var sandboxData: any;
+  var activeSandbox: Sandbox | null;
+  var sandboxData: Record<string, unknown> | null;
   var existingFiles: Set<string>;
 }
 
@@ -27,11 +28,11 @@ export async function POST() {
       );
     }
 
-    const sandboxId = global.sandboxData?.id || "unknown";
+    const sandboxId = (global.sandboxData as { id?: string })?.id || "unknown";
 
     try {
       // Close the active sandbox
-      await global.activeSandbox.close();
+      await global.activeSandbox.kill();
       console.log(
         "[V1 Sandbox Kill API] Sandbox closed successfully:",
         sandboxId

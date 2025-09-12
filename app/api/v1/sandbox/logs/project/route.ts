@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import type { Sandbox } from "@e2b/code-interpreter";
 
 // Global sandbox state declaration
 declare global {
-  var activeSandbox: any;
+  var activeSandbox: Sandbox | null;
 }
 
 // GET endpoint to monitor Next.js project logs and errors
@@ -176,10 +177,12 @@ print(json.dumps({
     "warningCount": len(unique_warnings)
 }))
     `,
-      { timeout: 8000 }
+      { timeoutMs: 8000 }
     );
 
-    const data = JSON.parse(result.output || '{"errors": [], "warnings": []}');
+    const output =
+      result.logs?.stdout?.join("") || '{"errors": [], "warnings": []}';
+    const data = JSON.parse(output);
 
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { EditMode } from "@/modules/project/project/edit-mode";
 import { ViewModeComponent } from "@/modules/project/project/view-mode";
 import { CodeMode } from "@/modules/project/project/code-mode";
@@ -100,12 +101,12 @@ function ProjectPageInner() {
           <h1 className="text-2xl font-semibold text-fg-30 mb-4">
             {error || "Project not found"}
           </h1>
-          <a
+          <Link
             href="/"
             className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:from-purple-600 hover:to-pink-600 transition-colors"
           >
             Go Home
-          </a>
+          </Link>
         </div>
       </div>
     );

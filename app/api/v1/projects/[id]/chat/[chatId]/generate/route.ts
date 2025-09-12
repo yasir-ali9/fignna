@@ -300,7 +300,7 @@ Remember: You are generating production-ready code that will be immediately exec
         }
 
         // Stream the AI response
-        const result = await streamText(streamOptions);
+        const result = streamText(streamOptions);
 
         let generatedCode = "";
         await sendProgress({ type: "status", message: "Generating code..." });
@@ -347,8 +347,7 @@ Remember: You are generating production-ready code that will be immediately exec
               metadata: {
                 model,
                 status: "failed",
-                errorMessage:
-                  error instanceof Error ? error.message : "Unknown error",
+                errorMessage: (error as Error).message,
               },
             });
           } catch (updateError) {

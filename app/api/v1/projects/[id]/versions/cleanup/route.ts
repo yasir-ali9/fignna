@@ -48,7 +48,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         {
           success: false,
           error: "Invalid project ID",
-          details: paramResult.error.errors,
+          details: paramResult.error.issues,
           version: "v1",
         },
         { status: 400 }

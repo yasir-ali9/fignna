@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import type { Sandbox } from "@e2b/code-interpreter";
 
 // Global sandbox state declaration
 declare global {
-  var activeSandbox: any;
+  var activeSandbox: Sandbox | null;
 }
 
 // GET endpoint to fetch sandbox system logs
@@ -90,7 +91,8 @@ except Exception as e:
 
     try {
       // Parse the JSON output from the Python script
-      const logData = JSON.parse(result.output || "{}");
+      const output = result.logs?.stdout?.join("") || "{}";
+      const logData = JSON.parse(output);
       return NextResponse.json({
         success: true,
         ...logData,
@@ -98,10 +100,11 @@ except Exception as e:
       });
     } catch {
       // Fallback if JSON parsing fails
+      const output = result.logs?.stdout?.join("") || "No output received";
       return NextResponse.json({
         success: true,
         hasErrors: false,
-        logs: [result.output || "No output received"],
+        logs: [output],
         status: "unknown",
         processCount: 0,
         version: "v1",

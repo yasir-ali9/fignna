@@ -3,11 +3,12 @@
  */
 
 import { NextResponse } from "next/server";
+import type { Sandbox } from "@e2b/code-interpreter";
 
-// Access global sandbox state 
+// Access global sandbox state
 declare global {
-  var activeSandbox: any;
-  var sandboxData: any;
+  var activeSandbox: Sandbox | null;
+  var sandboxData: Record<string, unknown> | null;
   var existingFiles: Set<string>;
 }
 
@@ -25,12 +26,19 @@ export async function GET() {
       try {
         // Check if sandbox is healthy by verifying it exists and has data
         sandboxHealthy = true;
+        const sandboxDataTyped = global.sandboxData as {
+          id?: string;
+          host?: string;
+          url?: string;
+          status?: string;
+          createdAt?: string;
+        };
         sandboxInfo = {
-          id: global.sandboxData.id,
-          host: global.sandboxData.host,
-          url: global.sandboxData.url,
-          status: global.sandboxData.status || "ready",
-          createdAt: global.sandboxData.createdAt,
+          id: sandboxDataTyped.id,
+          host: sandboxDataTyped.host,
+          url: sandboxDataTyped.url,
+          status: sandboxDataTyped.status || "ready",
+          createdAt: sandboxDataTyped.createdAt,
           filesTracked: global.existingFiles
             ? Array.from(global.existingFiles)
             : [],
@@ -38,7 +46,7 @@ export async function GET() {
         };
         console.log(
           "[V1 Sandbox Status API] Sandbox is healthy:",
-          sandboxInfo.id
+          sandboxInfo?.id
         );
       } catch (error) {
         console.error("[V1 Sandbox Status API] Health check failed:", error);

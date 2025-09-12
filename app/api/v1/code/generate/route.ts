@@ -11,22 +11,22 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { streamText } from "ai";
 import { modelsConfig } from "@/lib/config/models.config";
 
-// Global state declarations 
-declare global {
-  var activeSandbox: any;
-  var sandboxData: any;
-  var existingFiles: Set<string>;
-  var conversationState: ConversationState | null;
-  var sandboxState: SandboxState | null;
-}
-
 // Import types
 import type {
   ConversationState,
   ConversationMessage,
-  ConversationEdit,
-} from "@/types/conversation";
-import type { SandboxState } from "@/types/sandbox";
+} from "@/lib/types/conversation";
+import type { SandboxState } from "@/lib/types/sandbox";
+import type { Sandbox } from "@e2b/code-interpreter";
+
+// Global state declarations
+declare global {
+  var activeSandbox: Sandbox | null;
+  var sandboxData: Record<string, unknown> | null;
+  var existingFiles: Set<string>;
+  var conversationState: ConversationState | null;
+  var sandboxState: SandboxState | null;
+}
 
 // Initialize AI providers
 const groq = createGroq({
@@ -181,16 +181,17 @@ export async function POST(request: NextRequest) {
 
         // Build conversation context for system prompt
         let conversationContext = "";
+        const currentConversationState = global.conversationState;
         if (
-          global.conversationState &&
-          global.conversationState.context.messages.length > 1
+          currentConversationState &&
+          currentConversationState.context.messages.length > 1
         ) {
           console.log("[V1 Chat Generate API] Building conversation context");
 
           conversationContext = `\n\n## Conversation History (Recent)\n`;
 
           // Include only the last 3 edits to save context
-          const recentEdits = global.conversationState.context.edits.slice(-3);
+          const recentEdits = currentConversationState.context.edits.slice(-3);
           if (recentEdits.length > 0) {
             conversationContext += `\n### Recent Edits:\n`;
             recentEdits.forEach((edit) => {
@@ -204,7 +205,7 @@ export async function POST(request: NextRequest) {
 
           // Include recently created files - CRITICAL for preventing duplicates
           const recentMsgs =
-            global.conversationState.context.messages.slice(-5);
+            currentConversationState.context.messages.slice(-5);
           const recentlyCreatedFiles: string[] = [];
           recentMsgs.forEach((msg) => {
             if (msg.metadata?.editedFiles) {
@@ -238,7 +239,7 @@ export async function POST(request: NextRequest) {
 
           // Include user preferences
           const userPrefs = analyzeUserPreferences(
-            global.conversationState.context.messages
+            currentConversationState.context.messages
           );
           if (userPrefs.commonPatterns.length > 0) {
             conversationContext += `\n### User Preferences:\n`;
@@ -342,7 +343,7 @@ Your response must use this EXACT format for each file:
 
 Remember: You are generating production-ready code that will be immediately executed!`;
 
-        // Select AI model based on provider 
+        // Select AI model based on provider
         let aiModel;
         let actualModel = model;
 
@@ -405,7 +406,7 @@ Remember: You are generating production-ready code that will be immediately exec
         }
 
         // Stream the AI response
-        const result = await streamText(streamOptions);
+        const result = streamText(streamOptions);
 
         // Stream the response and parse in real-time
         let generatedCode = "";
@@ -475,15 +476,17 @@ Remember: You are generating production-ready code that will be immediately exec
             sandboxId: context?.sandboxId,
           },
         };
-        global.conversationState.context.messages.push(assistantMessage);
-        global.conversationState.lastUpdated = Date.now();
+        if (global.conversationState) {
+          global.conversationState.context.messages.push(assistantMessage);
+          global.conversationState.lastUpdated = Date.now();
+        }
 
         // Send completion
         await sendProgress({
           type: "complete",
           message: "Code generation completed!",
           generatedCode: generatedCode,
-          conversationId: global.conversationState.conversationId,
+          conversationId: global.conversationState?.conversationId,
         });
       } catch (error) {
         console.error("[V1 Chat Generate API] Error:", error);

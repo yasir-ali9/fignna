@@ -11,11 +11,12 @@ import {
 import { FileManifest, FileInfo, RouteInfo } from "@/lib/types/file-manifest";
 import type { SandboxState } from "@/lib/types/sandbox";
 
+import type { Sandbox } from "@e2b/code-interpreter";
 
-// Global state declarations 
+// Global state declarations
 declare global {
-  var activeSandbox: any;
-  var sandboxState: SandboxState;
+  var activeSandbox: Sandbox | null;
+  var sandboxState: SandboxState | null;
 }
 
 export async function GET() {
@@ -93,7 +94,7 @@ result = {
 print(json.dumps(result))
     `);
 
-    const output = result.output || result.logs?.stdout?.join("") || "";
+    const output = result.logs?.stdout?.join("") || "";
     if (!output) {
       throw new Error("No output from sandbox file scan");
     }
@@ -190,7 +191,9 @@ print(json.dumps(result))
       global.sandboxState.fileCache = {
         files: {},
         lastSync: Date.now(),
-        sandboxId: (global.activeSandbox as any).sandboxId || "unknown",
+        sandboxId:
+          (global.activeSandbox as Sandbox & { sandboxId: string })
+            ?.sandboxId || "unknown",
       };
     }
 

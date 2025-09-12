@@ -1,60 +1,66 @@
 /**
  * V1 Sandbox Creation API Route
- * Creates new E2B sandbox for Vite React projects 
+ * Creates new E2B sandbox for Vite React projects
  */
 
-import { NextResponse } from 'next/server';
-import { Sandbox } from '@e2b/code-interpreter';
+import { NextResponse } from "next/server";
+import { Sandbox } from "@e2b/code-interpreter";
 
-// Store active sandbox globally 
+// Store active sandbox globally
 declare global {
-    var activeSandbox: any;
-    var sandboxData: any;
-    var existingFiles: Set<string>;
+  var activeSandbox: Sandbox | null;
+  var sandboxData: Record<string, unknown> | null;
+  var existingFiles: Set<string>;
 }
 
 export async function POST() {
-    let sandbox: any = null;
+  let sandbox: Sandbox | null = null;
 
-    try {
-        console.log('[V1 Sandbox API] Creating Vite React sandbox...');
+  try {
+    console.log("[V1 Sandbox API] Creating Vite React sandbox...");
 
-        // Kill existing sandbox if any 
-        if (global.activeSandbox) {
-            console.log('[V1 Sandbox API] Killing existing sandbox...');
-            try {
-                await global.activeSandbox.close();
-            } catch (e) {
-                console.error('[V1 Sandbox API] Failed to close existing sandbox:', e);
-            }
-            global.activeSandbox = null;
-        }
+    // Kill existing sandbox if any
+    if (global.activeSandbox) {
+      console.log("[V1 Sandbox API] Killing existing sandbox...");
+      try {
+        await global.activeSandbox.kill();
+      } catch (e) {
+        console.error("[V1 Sandbox API] Failed to close existing sandbox:", e);
+      }
+      global.activeSandbox = null;
+    }
 
-        // Clear existing files tracking
-        if (global.existingFiles) {
-            global.existingFiles.clear();
-        } else {
-            global.existingFiles = new Set<string>();
-        }
+    // Clear existing files tracking
+    if (global.existingFiles) {
+      global.existingFiles.clear();
+    } else {
+      global.existingFiles = new Set<string>();
+    }
 
-        // Create base E2B sandbox with 30 minute timeout
-        console.log('[V1 Sandbox API] Creating base E2B sandbox with 30 minute timeout...');
-        sandbox = await Sandbox.create({
-            apiKey: process.env.E2B_API_KEY,
-            timeoutMs: 30 * 60 * 1000 // 30 minutes
-        });
+    // Create base E2B sandbox with 30 minute timeout
+    console.log(
+      "[V1 Sandbox API] Creating base E2B sandbox with 30 minute timeout..."
+    );
+    sandbox = await Sandbox.create({
+      apiKey: process.env.E2B_API_KEY,
+      timeoutMs: 30 * 60 * 1000, // 30 minutes
+    });
 
-        const sandboxId = (sandbox as any).sandboxId || Date.now().toString();
-        const host = (sandbox as any).getHost(5173); // Vite default port
+    const sandboxId =
+      (sandbox as Sandbox & { sandboxId: string }).sandboxId ||
+      Date.now().toString();
+    const host = (
+      sandbox as Sandbox & { getHost: (port: number) => string }
+    ).getHost(5173); // Vite default port
 
-        console.log(`[V1 Sandbox API] Sandbox created: ${sandboxId}`);
-        console.log(`[V1 Sandbox API] Sandbox host: ${host}`);
+    console.log(`[V1 Sandbox API] Sandbox created: ${sandboxId}`);
+    console.log(`[V1 Sandbox API] Sandbox host: ${host}`);
 
-        // Set up Vite React app using Python script 
-        console.log('[V1 Sandbox API] Setting up Vite React app...');
+    // Set up Vite React app using Python script
+    console.log("[V1 Sandbox API] Setting up Vite React app...");
 
-        // Write all files in a single Python script to avoid multiple executions
-        const setupScript = `
+    // Write all files in a single Python script to avoid multiple executions
+    const setupScript = `
 import os
 import json
 
@@ -229,12 +235,12 @@ print('✓ src/index.css')
 print('\\nAll files created successfully!')
 `;
 
-        // Execute the setup script
-        await sandbox.runCode(setupScript);
-        
-        // Install dependencies
-        console.log('[V1 Sandbox API] Installing dependencies...');
-        await sandbox.runCode(`
+    // Execute the setup script
+    await sandbox.runCode(setupScript);
+
+    // Install dependencies
+    console.log("[V1 Sandbox API] Installing dependencies...");
+    await sandbox.runCode(`
 import subprocess
 import sys
 
@@ -252,10 +258,10 @@ else:
     print(f'⚠ Warning: npm install had issues: {result.stderr}')
     # Continue anyway as it might still work
     `);
-    
-        // Start Vite dev server
-        console.log('[V1 Sandbox API] Starting Vite dev server...');
-        await sandbox.runCode(`
+
+    // Start Vite dev server
+    console.log("[V1 Sandbox API] Starting Vite dev server...");
+    await sandbox.runCode(`
 import subprocess
 import os
 import time
@@ -280,12 +286,12 @@ process = subprocess.Popen(
 print(f'✓ Vite dev server started with PID: {process.pid}')
 print('Waiting for server to be ready...')
     `);
-    
-        // Wait for Vite to be fully ready
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Vite is faster than Next.js
-    
-        // Force Tailwind CSS to rebuild by touching the CSS file
-        await sandbox.runCode(`
+
+    // Wait for Vite to be fully ready
+    await new Promise((resolve) => setTimeout(resolve, 5000)); // Vite is faster than Next.js
+
+    // Force Tailwind CSS to rebuild by touching the CSS file
+    await sandbox.runCode(`
 import os
 import time
 
@@ -300,49 +306,51 @@ time.sleep(2)
 print('✓ Tailwind CSS should be loaded')
     `);
 
-        // Store sandbox globally
-        global.activeSandbox = sandbox;
-        global.sandboxData = {
-            sandboxId,
-            url: `https://${host}`
-        };
-        
-        // Set extended timeout on the sandbox instance if method available
-        if (typeof sandbox.setTimeout === 'function') {
-            sandbox.setTimeout(30 * 60 * 1000);
-            console.log('[V1 Sandbox API] Set sandbox timeout to 30 minutes');
-        }
+    // Store sandbox globally
+    global.activeSandbox = sandbox;
+    global.sandboxData = {
+      sandboxId,
+      url: `https://${host}`,
+    };
 
-        console.log('[V1 Sandbox API] Vite React sandbox ready at:', `https://${host}`);
-        
-        return NextResponse.json({
-            success: true,
-            sandboxId,
-            url: `https://${host}`,
-            message: 'Vite React sandbox created and initialized successfully',
-            version: 'v1'
-        });
-
-    } catch (error) {
-        console.error('[V1 Sandbox API] Error:', error);
-        
-        // Clean up on error
-        if (sandbox) {
-            try {
-                await sandbox.kill();
-            } catch (e) {
-                console.error('Failed to close sandbox on error:', e);
-            }
-        }
-        
-        return NextResponse.json(
-            { 
-                success: false,
-                error: 'Failed to create Vite React sandbox',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                version: 'v1'
-            },
-            { status: 500 }
-        );
+    // Set extended timeout on the sandbox instance if method available
+    if (typeof sandbox.setTimeout === "function") {
+      sandbox.setTimeout(30 * 60 * 1000);
+      console.log("[V1 Sandbox API] Set sandbox timeout to 30 minutes");
     }
+
+    console.log(
+      "[V1 Sandbox API] Vite React sandbox ready at:",
+      `https://${host}`
+    );
+
+    return NextResponse.json({
+      success: true,
+      sandboxId,
+      url: `https://${host}`,
+      message: "Vite React sandbox created and initialized successfully",
+      version: "v1",
+    });
+  } catch (error) {
+    console.error("[V1 Sandbox API] Error:", error);
+
+    // Clean up on error
+    if (sandbox) {
+      try {
+        await sandbox.kill();
+      } catch (e) {
+        console.error("Failed to close sandbox on error:", e);
+      }
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to create Vite React sandbox",
+        details: error instanceof Error ? error.message : "Unknown error",
+        version: "v1",
+      },
+      { status: 500 }
+    );
+  }
 }
