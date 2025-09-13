@@ -16,15 +16,17 @@ export default async function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bk-50 px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-bk-40 rounded-lg p-8 border border-bd-50">
+    <div className="min-h-screen flex items-center justify-center bg-bk-60 px-4">
+      <div className="w-full max-w-sm">
+        <div className="bg-bk-40 rounded-lg p-6 border border-bd-50">
           {/* Header */}
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-fg-70 mb-2">
+          <div className="text-center mb-6">
+            <h1 className="text-lg font-medium text-fg-30 mb-2">
               Welcome to fignna.com
             </h1>
-            <p className="text-fg-60">Sign in to your account to continue</p>
+            <p className="text-fg-60 text-sm">
+              Sign in to your account to continue
+            </p>
           </div>
 
           {/* Authentication Form */}

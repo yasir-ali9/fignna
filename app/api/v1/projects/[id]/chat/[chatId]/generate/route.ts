@@ -349,7 +349,7 @@ Remember: You are generating production-ready code that will be immediately exec
 
           const saveResponse = await fetch(
             `${
-              process.env.NEXTAUTH_URL || "http://localhost:3000"
+              process.env.BETTER_AUTH_URL || "http://localhost:3000"
             }/api/v1/projects/${projectId}/save`,
             {
               method: "POST",

@@ -729,7 +729,7 @@ print(f"\\nReturn code: {result.returncode}")
               const projectId = projectIdMatch[1];
               const saveResponse = await fetch(
                 `${
-                  process.env.NEXTAUTH_URL || "http://localhost:3000"
+                  process.env.BETTER_AUTH_URL || "http://localhost:3000"
                 }/api/v1/projects/${projectId}/save`,
                 {
                   method: "POST",
