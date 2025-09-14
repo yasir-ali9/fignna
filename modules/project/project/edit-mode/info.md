@@ -26,7 +26,6 @@ Edit Mode is where users can:
 ## Similar To
 
 - Figma's design interface
-- Onlook's visual editor
 - Framer's canvas mode
 
 This mode focuses on visual design and direct manipulation of UI elements.

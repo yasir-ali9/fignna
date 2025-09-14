@@ -12,8 +12,9 @@ export default function Home() {
       {/* Main Content */}
       <div className="flex items-center justify-center min-h-[calc(100vh-80px)] p-8">
         <div className="flex flex-col items-center gap-8 w-full max-w-3xl">
-          <div className="text-2xl text-fg-50 font-mono">
-            hello world from fignna.
+          <div className="text-2xl text-fg-50 font-mono text-center tracking-tighter">
+            Build apps through conversation, visual editing, or direct coding -
+            all in one place.
           </div>
           <PromptInput />
         </div>

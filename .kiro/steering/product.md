@@ -42,7 +42,7 @@ The "Edit" mode allows users to modify elements using Figma-like panels AND chat
 ### State Management Architecture
 
 - **Centralized State**: All application state must be managed through MobX stores, never use local component state (`useState`)
-- **EditorEngine Pattern**: Follow the centralized `EditorEngine` pattern inspired by Onlook's architecture
+- **EditorEngine Pattern**: Follow the centralized `EditorEngine` pattern.
 - **Store Structure**: Use specialized managers (StateManager, CanvasManager, ElementsManager, etc.) composed in the main EditorEngine
 - **Observer Pattern**: All components that use state must be wrapped with `observer()` from `mobx-react-lite`
 - **State Persistence**: Centralized state ensures data persists across mode switches and component re-renders

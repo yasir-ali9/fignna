@@ -17,7 +17,7 @@ export class CanvasManager {
     mode: CanvasMode = CanvasMode.DESIGN;
     isInitialized: boolean = false;
 
-    // Canvas constraints (based on Onlook's implementation)
+    // Canvas constraints 
     readonly MIN_ZOOM = 0.1;
     readonly MAX_ZOOM = 3;
     readonly MAX_X = 10000;
@@ -66,7 +66,7 @@ export class CanvasManager {
         }
     }
 
-    // Utility methods (inspired by Onlook)
+    // Utility methods 
     private clampZoom(scale: number): number {
         return Math.min(Math.max(scale, this.MIN_ZOOM), this.MAX_ZOOM);
     }

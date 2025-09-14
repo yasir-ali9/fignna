@@ -4,7 +4,7 @@
 
 ## What is Fignna?
 
-Fignna combines visual design capabilities with AI-powered development into one seamless experience. Build apps through conversation, visual editing, or direct coding - all in real-time.
+Fignna combines visual design capabilities with AI-powered development into one seamless experience. Build apps through conversation, visual editing, or direct coding - all in one place.
 
 ## Features
 

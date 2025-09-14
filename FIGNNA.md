@@ -1,4 +1,4 @@
-# Fignna - Visual Development Tool
+# Fignna
 
 ## Inspiration
 

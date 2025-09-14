@@ -346,12 +346,12 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
 
       {/* Game Modal */}
       {isGameModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[200]">
+        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-[200]">
           <div className="bg-bk-50 rounded-lg border border-bd-50 relative max-w-md w-full mx-4">
             {/* Close button */}
             <button
               onClick={() => setIsGameModalOpen(false)}
-              className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-md text-fg-50 hover:text-fg-30 hover:bg-bk-30 transition-colors"
+              className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center rounded-md text-fg-50 hover:text-fg-30 hover:bg-bk-30 transition-colors cursor-pointer"
             >
               <X size={14} />
             </button>

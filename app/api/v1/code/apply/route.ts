@@ -444,7 +444,7 @@ export async function POST(request: NextRequest) {
             packages: uniquePackages,
           });
 
-          // Use detect-and-install-packages for chat flow (like open-lovable)
+          // Use detect-and-install-packages for chat flow
           try {
             // Construct the API URL properly for both dev and production
             const protocol =
@@ -472,7 +472,7 @@ export async function POST(request: NextRequest) {
               const reader = installResponse.body?.getReader();
               if (reader) {
                 const decoder = new TextDecoder();
-                let packageResult: any = {};
+                let packageResult: Record<string, unknown> = {};
 
                 while (true) {
                   const { done, value } = await reader.read();

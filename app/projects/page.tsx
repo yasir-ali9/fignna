@@ -201,8 +201,28 @@ function ProjectsList() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="text-fg-60 text-sm">Loading...</div>
+      <div className="max-w-6xl mx-auto px-8 py-12">
+        {/* Header Skeleton */}
+        <div className="mb-12">
+          <div className="h-8 w-32 bg-bk-50 rounded animate-pulse mb-2"></div>
+        </div>
+
+        {/* Projects Grid Skeleton */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+          {/* Generate 8 skeleton cards */}
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div key={index} className="flex flex-col">
+              {/* Project Preview/Thumbnail Skeleton */}
+              <div className="w-full aspect-[4/3] bg-bk-50 rounded-lg mb-3 animate-pulse"></div>
+
+              {/* Project Name Skeleton */}
+              <div className="w-full">
+                <div className="h-4 bg-bk-50 rounded animate-pulse mb-1"></div>
+                <div className="h-3 w-20 bg-bk-50 rounded animate-pulse"></div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }

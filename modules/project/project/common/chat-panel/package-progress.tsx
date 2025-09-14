@@ -2,8 +2,6 @@
  * Package Installation Progress Component
  *
  * Shows visual progress for package installation in the chat panel.
- * Inspired by open-lovable's CodeApplicationProgress component but adapted
- * for your chat system and design patterns.
  */
 
 "use client";
