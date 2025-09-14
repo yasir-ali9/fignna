@@ -94,19 +94,23 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const { files: filesToUpdate, metadata } = validationResult.data;
 
     // CRITICAL SAFETY CHECK: Prevent updating with empty files
-    const hasEmptyFiles = Object.values(filesToUpdate).some(
-      (content) => typeof content === "string" && content.trim().length === 0
+    const emptyFiles = Object.entries(filesToUpdate).filter(
+      ([path, content]) =>
+        typeof content === "string" && content.trim().length === 0
     );
 
-    if (hasEmptyFiles) {
+    if (emptyFiles.length > 0) {
       console.error(
-        `[V1 Files Update API] BLOCKED: Attempt to update files with empty content for project ${id}`
+        `[V1 Files Update API] BLOCKED: Attempt to update files with empty content for project ${id}:`,
+        emptyFiles.map(([path]) => path)
       );
       return NextResponse.json(
         {
           success: false,
           error: "Cannot update files with empty content",
-          details: "Use DELETE endpoint to remove files instead",
+          details: `Empty files detected: ${emptyFiles
+            .map(([path]) => path)
+            .join(", ")}. Use DELETE endpoint to remove files instead.`,
           version: "v1",
         },
         { status: 400 }

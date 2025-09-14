@@ -180,27 +180,55 @@ export const FileTree = observer(
         try {
           setIsCreating(true);
 
-          // Create the file/folder using V1 Projects API
+          // PROPER FLOW: Create file in sandbox first, then database
           if (result.type === "file") {
-            // Get current project files
-            const currentFiles = engine.files.getAllFiles();
+            // Step 1: Create file in sandbox for immediate preview
+            try {
+              const sandboxResponse = await fetch(
+                "/api/v1/sandbox/files/write",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    files: {
+                      [result.path]: "",
+                    },
+                  }),
+                }
+              );
 
-            // Add the new file
-            const updatedFiles = {
-              ...currentFiles,
-              [result.path]: "",
-            };
+              if (!sandboxResponse.ok) {
+                console.warn(
+                  "Failed to create file in sandbox, continuing with database save..."
+                );
+              } else {
+                console.log("✅ File created in sandbox for immediate preview");
+              }
+            } catch (sandboxError) {
+              console.warn(
+                "Sandbox file creation failed, continuing with database save:",
+                sandboxError
+              );
+            }
 
-            // Update via V1 API
+            // Step 2: Save to database with PATCH endpoint for persistence
             const response = await fetch(
-              `/api/v1/projects/${engine.projects.currentProject?.id}/files`,
+              `/api/v1/projects/${engine.projects.currentProject?.id}/files/update`,
               {
-                method: "PUT",
+                method: "PATCH",
                 headers: {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  files: updatedFiles,
+                  files: {
+                    [result.path]: "",
+                  },
+                  metadata: {
+                    source: "editor",
+                    updatedBy: "user",
+                  },
                 }),
               }
             );
@@ -213,23 +241,55 @@ export const FileTree = observer(
             console.log("📄 Created file:", result.path);
           } else {
             // For folders, we create a placeholder .gitkeep file
-            const currentFiles = engine.files.getAllFiles();
+            // Step 1: Create .gitkeep in sandbox for immediate preview
+            try {
+              const sandboxResponse = await fetch(
+                "/api/v1/sandbox/files/write",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    files: {
+                      [`${result.path}/.gitkeep`]: "",
+                    },
+                  }),
+                }
+              );
 
-            // Add the .gitkeep file for the folder
-            const updatedFiles = {
-              ...currentFiles,
-              [`${result.path}/.gitkeep`]: "",
-            };
+              if (!sandboxResponse.ok) {
+                console.warn(
+                  "Failed to create folder in sandbox, continuing with database save..."
+                );
+              } else {
+                console.log(
+                  "✅ Folder created in sandbox for immediate preview"
+                );
+              }
+            } catch (sandboxError) {
+              console.warn(
+                "Sandbox folder creation failed, continuing with database save:",
+                sandboxError
+              );
+            }
 
+            // Step 2: Save to database with PATCH endpoint for persistence
             const response = await fetch(
-              `/api/v1/projects/${engine.projects.currentProject?.id}/files`,
+              `/api/v1/projects/${engine.projects.currentProject?.id}/files/update`,
               {
-                method: "PUT",
+                method: "PATCH",
                 headers: {
                   "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                  files: updatedFiles,
+                  files: {
+                    [`${result.path}/.gitkeep`]: "",
+                  },
+                  metadata: {
+                    source: "editor",
+                    updatedBy: "user",
+                  },
                 }),
               }
             );

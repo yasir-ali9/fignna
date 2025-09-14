@@ -444,59 +444,146 @@ export async function POST(request: NextRequest) {
             packages: uniquePackages,
           });
 
-          // Use streaming package installation
+          // Use detect-and-install-packages for chat flow (like open-lovable)
           try {
             // Construct the API URL properly for both dev and production
             const protocol =
               process.env.NODE_ENV === "production" ? "https" : "http";
             const host = req.headers.get("host") || "localhost:3000";
-            const apiUrl = `${protocol}://${host}/api/v1/packages/install`;
+            const apiUrl = `${protocol}://${host}/api/v1/packages/detect`;
+
+            // Prepare files for package detection (from parsed files)
+            const filesForPackageDetection: Record<string, string> = {};
+            for (const file of parsed.files) {
+              filesForPackageDetection[file.path] = file.content;
+            }
 
             const installResponse = await fetch(apiUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                packages: uniquePackages,
-                sandboxId:
-                  sandboxId ||
-                  (sandboxInstance as Sandbox & { sandboxId: string })
-                    .sandboxId,
+                files: filesForPackageDetection,
+                streaming: true,
               }),
             });
 
-            if (installResponse.ok && installResponse.body) {
-              const reader = installResponse.body.getReader();
-              const decoder = new TextDecoder();
+            if (installResponse.ok) {
+              // Handle streaming response from detect API
+              const reader = installResponse.body?.getReader();
+              if (reader) {
+                const decoder = new TextDecoder();
+                let packageResult: any = {};
 
-              while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+                while (true) {
+                  const { done, value } = await reader.read();
+                  if (done) break;
 
-                const chunk = decoder.decode(value);
-                if (!chunk) continue;
-                const lines = chunk.split("\n");
+                  const chunk = decoder.decode(value);
+                  const lines = chunk.split("\n");
 
-                for (const line of lines) {
-                  if (line.startsWith("data: ")) {
-                    try {
-                      const data = JSON.parse(line.slice(6));
+                  for (const line of lines) {
+                    if (line.startsWith("data: ")) {
+                      try {
+                        const data = JSON.parse(line.slice(6));
 
-                      // Forward package installation progress
-                      await sendProgress({
-                        type: "package-progress",
-                        ...data,
-                      });
+                        // Forward package progress to chat
+                        if (data.type === "package-progress") {
+                          await sendProgress({
+                            type: "package-progress",
+                            stage: data.stage,
+                            message: data.message,
+                            packages: data.packages,
+                          });
+                        } else if (data.type === "package-complete") {
+                          packageResult = data;
 
-                      // Track results
-                      if (data.type === "success" && data.installedPackages) {
-                        results.packagesInstalled = data.installedPackages;
+                          if (
+                            data.packagesInstalled &&
+                            data.packagesInstalled.length > 0
+                          ) {
+                            results.packagesInstalled = data.packagesInstalled;
+                            console.log(
+                              `[V1 Chat Apply API] Installed packages: ${data.packagesInstalled.join(
+                                ", "
+                              )}`
+                            );
+
+                            await sendProgress({
+                              type: "package-success",
+                              message: `Installed ${
+                                data.packagesInstalled.length
+                              } packages: ${data.packagesInstalled.join(", ")}`,
+                              packages: data.packagesInstalled,
+                            });
+                          }
+
+                          if (
+                            data.packagesAlreadyInstalled &&
+                            data.packagesAlreadyInstalled.length > 0
+                          ) {
+                            results.packagesAlreadyInstalled =
+                              data.packagesAlreadyInstalled;
+                            console.log(
+                              `[V1 Chat Apply API] Already installed: ${data.packagesAlreadyInstalled.join(
+                                ", "
+                              )}`
+                            );
+                          }
+
+                          if (
+                            data.packagesFailed &&
+                            data.packagesFailed.length > 0
+                          ) {
+                            results.packagesFailed = data.packagesFailed;
+                            console.error(
+                              `[V1 Chat Apply API] Failed to install packages: ${data.packagesFailed.join(
+                                ", "
+                              )}`
+                            );
+                            results.errors.push(
+                              `Failed to install packages: ${data.packagesFailed.join(
+                                ", "
+                              )}`
+                            );
+
+                            await sendProgress({
+                              type: "warning",
+                              message: `Failed to install some packages: ${data.packagesFailed.join(
+                                ", "
+                              )}`,
+                            });
+                          }
+                        } else if (data.type === "error") {
+                          console.error(
+                            "[V1 Chat Apply API] Package installation error:",
+                            data.error
+                          );
+                          await sendProgress({
+                            type: "warning",
+                            message: `Package installation failed: ${data.error}`,
+                          });
+                        }
+                      } catch (parseError) {
+                        console.warn(
+                          "[V1 Chat Apply API] Failed to parse package progress:",
+                          parseError
+                        );
                       }
-                    } catch {
-                      // Ignore parse errors
                     }
                   }
                 }
+
+                console.log(
+                  "[V1 Chat Apply API] Package installation result:",
+                  JSON.stringify(packageResult, null, 2)
+                );
+              } else {
+                throw new Error("No response stream available");
               }
+            } else {
+              throw new Error(
+                `Package detection API returned ${installResponse.status}`
+              );
             }
           } catch (error) {
             console.error(

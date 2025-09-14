@@ -170,6 +170,40 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // CRITICAL SAFETY CHECK: Prevent mass file overwrites with empty content
+    const emptyFiles = Object.entries(validationResult.data.files).filter(
+      ([path, content]) =>
+        typeof content === "string" && content.trim().length === 0
+    );
+
+    // If more than 50% of files are empty, this is likely a dangerous operation
+    const totalFiles = Object.keys(validationResult.data.files).length;
+    const emptyFileCount = emptyFiles.length;
+    const emptyFilePercentage = (emptyFileCount / totalFiles) * 100;
+
+    if (emptyFileCount > 3 || emptyFilePercentage > 50) {
+      console.error(
+        `[V1 Project Files API] BLOCKED: Dangerous mass file overwrite detected for project ${id}:`,
+        {
+          totalFiles,
+          emptyFiles: emptyFileCount,
+          emptyPercentage: emptyFilePercentage.toFixed(1) + "%",
+          emptyFilePaths: emptyFiles.map(([path]) => path),
+        }
+      );
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Dangerous mass file overwrite detected",
+          details: `${emptyFileCount} out of ${totalFiles} files (${emptyFilePercentage.toFixed(
+            1
+          )}%) are empty. Use PATCH /files/update endpoint for safer updates.`,
+          version: "v1",
+        },
+        { status: 400 }
+      );
+    }
+
     // Update project files
     const updatedProject = await projectQueries.updateFiles(
       id,

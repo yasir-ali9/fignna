@@ -18,6 +18,7 @@ import type {
 } from "@/lib/types/conversation";
 import type { SandboxState } from "@/lib/types/sandbox";
 import type { Sandbox } from "@e2b/code-interpreter";
+// Removed package intent detection - packages are handled in apply flow
 
 // Global state declarations
 declare global {
@@ -119,6 +120,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Package installation is handled in the apply flow, not here
 
     // Initialize conversation state if not exists
     if (!global.conversationState) {

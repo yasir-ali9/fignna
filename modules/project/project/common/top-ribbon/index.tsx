@@ -7,6 +7,7 @@ import { LogoDropdown } from "../../../widgets/project/dropdown";
 import { Tooltip } from "../../../widgets/tooltip";
 
 import { SandboxDropdown } from "../../../widgets/project/sandbox-dropdown";
+import { MoreOptionsDropdown } from "../../../widgets/project/more-options-dropdown";
 import { TicTacToeGame } from "../../../widgets/project/tic-tac-toe-game";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { AppMode, ViewModeTab, ViewMode } from "@/lib/stores/editor/state";
@@ -20,19 +21,106 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isGameModalOpen, setIsGameModalOpen] = useState(false);
 
-  // Handle project name editing
+  // Handle project name editing with optimistic updates
   const handleNameClick = () => {
-    engine.state.setEditingProjectName(true);
+    if (engine.projects.currentProject) {
+      // Set the current project name in state for editing
+      engine.state.setProjectName(engine.projects.currentProject.name);
+      engine.state.setEditingProjectName(true);
+    }
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     engine.state.setProjectName(e.target.value);
   };
 
-  const handleNameSubmit = () => {
+  const handleNameSubmit = async () => {
+    if (!engine.projects.currentProject) {
+      engine.state.setEditingProjectName(false);
+      return;
+    }
+
+    const newName = engine.state.projectName.trim();
+    const oldName = engine.projects.currentProject.name;
+
+    // Input validation
+    if (!newName) {
+      engine.state.setProjectName(oldName);
+      engine.state.setEditingProjectName(false);
+      return;
+    }
+
+    if (newName.length > 255) {
+      alert("Project name must be less than 255 characters");
+      engine.state.setProjectName(oldName);
+      engine.state.setEditingProjectName(false);
+      return;
+    }
+
+    // Basic XSS prevention
+    const cleanName = newName.replace(/[<>"'&]/g, "");
+    if (cleanName !== newName) {
+      alert("Project name contains invalid characters");
+      engine.state.setProjectName(oldName);
+      engine.state.setEditingProjectName(false);
+      return;
+    }
+
+    // If name hasn't changed, just exit edit mode
+    if (cleanName === oldName) {
+      engine.state.setEditingProjectName(false);
+      return;
+    }
+
+    // Update UI immediately (optimistic update)
+    engine.state.setProjectName(cleanName);
     engine.state.setEditingProjectName(false);
-    if (!engine.state.projectName.trim()) {
-      engine.state.setProjectName("Unnamed");
+
+    // Update the project in the projects manager
+    if (engine.projects.currentProject) {
+      engine.projects.currentProject.name = cleanName;
+    }
+
+    // Make API call in background
+    try {
+      const response = await fetch(
+        `/api/v1/projects/${engine.projects.currentProject.id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: cleanName,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        // Revert on error
+        engine.state.setProjectName(oldName);
+        if (engine.projects.currentProject) {
+          engine.projects.currentProject.name = oldName;
+        }
+        console.error("Failed to rename project:", data.error);
+        alert(`Failed to rename project: ${data.error || "Unknown error"}`);
+      } else {
+        console.log("✅ Project renamed successfully:", cleanName);
+      }
+    } catch (error) {
+      // Revert on error
+      engine.state.setProjectName(oldName);
+      if (engine.projects.currentProject) {
+        engine.projects.currentProject.name = oldName;
+      }
+      console.error("Error renaming project:", error);
+      alert(
+        `Error renaming project: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
     }
   };
 
@@ -40,8 +128,11 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
     if (e.key === "Enter") {
       handleNameSubmit();
     } else if (e.key === "Escape") {
+      // Reset to original project name and exit edit mode
+      if (engine.projects.currentProject) {
+        engine.state.setProjectName(engine.projects.currentProject.name);
+      }
       engine.state.setEditingProjectName(false);
-      // Reset to the stored value (no change needed as it's already in state)
     }
   };
 
@@ -80,9 +171,11 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
               onClick={handleNameClick}
               className="text-fg-50 text-[12px] hover:text-fg-40 transition-colors cursor-text"
             >
-              {engine.projects.currentProject?.name ||
-                project?.name ||
-                engine.state.projectName}
+              {engine.state.isEditingProjectName
+                ? engine.state.projectName
+                : engine.projects.currentProject?.name ||
+                  project?.name ||
+                  "Unnamed"}
             </button>
           )}
         </div>
@@ -190,6 +283,8 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
         </Tooltip>
 
         <SandboxDropdown />
+
+        <MoreOptionsDropdown />
 
         {/* Preview Button - Available in Both Modes */}
         <Tooltip content="Preview Mode" position="bottom" delay={500}>

@@ -49,6 +49,15 @@ export class ChatManager {
   isStreaming: boolean = false;
   streamingMessageId: string | null = null;
 
+  // Package installation progress state
+  packageProgress: {
+    stage: "detecting" | "installing" | "restarting" | "complete" | null;
+    packages?: string[];
+    installedPackages?: string[];
+    message?: string;
+    error?: string;
+  } = { stage: null };
+
   constructor(engine: EditorEngine) {
     this.engine = engine;
     makeAutoObservable(this);
@@ -330,6 +339,24 @@ export class ChatManager {
                     },
                   };
                 }
+              } else if (data.type === "package-success") {
+                // Handle package installation success
+                this.updatePackageProgress({
+                  stage: "complete",
+                  installedPackages: data.packages || [],
+                  message: data.message,
+                });
+                // Clear progress after a delay
+                setTimeout(() => {
+                  this.clearPackageProgress();
+                }, 3000);
+              } else if (data.type === "package-progress") {
+                // Handle package installation progress from apply API
+                this.updatePackageProgress({
+                  stage: data.stage || "detecting",
+                  packages: data.packages,
+                  message: data.message,
+                });
               }
             } catch (e) {
               console.error("Error parsing stream data:", e);
@@ -502,6 +529,15 @@ export class ChatManager {
   // Clear error
   clearError() {
     this.error = null;
+  }
+
+  // Package progress management
+  updatePackageProgress(update: Partial<typeof this.packageProgress>) {
+    this.packageProgress = { ...this.packageProgress, ...update };
+  }
+
+  clearPackageProgress() {
+    this.packageProgress = { stage: null };
   }
 
   // Getters

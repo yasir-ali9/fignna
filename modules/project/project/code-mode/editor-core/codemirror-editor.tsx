@@ -70,24 +70,51 @@ export const CodeMirrorEditor = observer(() => {
           isSavingRef.current = true;
           setIsSaving(true);
 
-          // Use V1 Projects API to save file
-          const currentFiles = engine.files.getAllFiles();
-
-          // Update the specific file content
-          const updatedFiles = {
-            ...currentFiles,
-            [filePath]: content,
-          };
-
-          const response = await fetch(
-            `/api/v1/projects/${engine.projects.currentProject?.id}/files`,
-            {
-              method: "PUT",
+          // PROPER FLOW: Update sandbox first, then database
+          // Step 1: Update file in sandbox for immediate preview
+          try {
+            const sandboxResponse = await fetch("/api/v1/sandbox/files/write", {
+              method: "POST",
               headers: {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                files: updatedFiles,
+                files: {
+                  [filePath]: content,
+                },
+              }),
+            });
+
+            if (!sandboxResponse.ok) {
+              console.warn(
+                "Failed to update sandbox, continuing with database save..."
+              );
+            } else {
+              console.log("✅ File updated in sandbox for immediate preview");
+            }
+          } catch (sandboxError) {
+            console.warn(
+              "Sandbox update failed, continuing with database save:",
+              sandboxError
+            );
+          }
+
+          // Step 2: Update database with PATCH endpoint for persistence
+          const response = await fetch(
+            `/api/v1/projects/${engine.projects.currentProject?.id}/files/update`,
+            {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                files: {
+                  [filePath]: content,
+                },
+                metadata: {
+                  source: "editor",
+                  updatedBy: "user",
+                },
               }),
             }
           );

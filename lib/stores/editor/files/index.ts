@@ -512,9 +512,14 @@ export class FilesManager {
 
   /**
    * Get all files as JSONB format for database storage
-   * WARNING: This method includes empty files and should be used carefully
+   * DEPRECATED: This method is dangerous as it can include empty files
+   * Use getChangedFiles() instead for safer updates
    */
   getAllFiles(): Record<string, string> {
+    console.warn(
+      "⚠️ getAllFiles() is deprecated and dangerous - use getChangedFiles() instead"
+    );
+
     const files: Record<string, string> = {};
 
     // Get content from open tabs (most up-to-date)
@@ -522,20 +527,13 @@ export class FilesManager {
       files[tab.path] = tab.content;
     });
 
-    // Add files from tree that aren't open in tabs
-    const addFilesFromTree = (nodes: FileNode[]) => {
-      nodes.forEach((node) => {
-        if (node.type === "file" && !files[node.path]) {
-          // File not in tabs, use empty content or fetch from server
-          files[node.path] = "";
-        }
-        if (node.children) {
-          addFilesFromTree(node.children);
-        }
-      });
-    };
+    // SAFETY CHECK: Don't add files from tree that aren't open in tabs
+    // This prevents adding empty files that could overwrite existing content
+    console.log(
+      "📁 getAllFiles() returning only open tabs to prevent data loss:",
+      Object.keys(files)
+    );
 
-    addFilesFromTree(this.fileTree);
     return files;
   }
 

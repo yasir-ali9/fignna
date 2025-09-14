@@ -47,25 +47,53 @@ export const NewFileModal = observer(
       try {
         setIsCreatingFile(true);
 
-        // Create file using V1 Projects API
-        const currentFiles = engine.files.getAllFiles();
+        // PROPER FLOW: Create file in sandbox first, then database
         const newContent = getDefaultContent(filePath);
 
-        // Add the new file
-        const updatedFiles = {
-          ...currentFiles,
-          [filePath.trim()]: newContent,
-        };
-
-        const response = await fetch(
-          `/api/v1/projects/${engine.projects.currentProject?.id}/files`,
-          {
-            method: "PUT",
+        // Step 1: Create file in sandbox for immediate preview
+        try {
+          const sandboxResponse = await fetch("/api/v1/sandbox/files/write", {
+            method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              files: updatedFiles,
+              files: {
+                [filePath.trim()]: newContent,
+              },
+            }),
+          });
+
+          if (!sandboxResponse.ok) {
+            console.warn(
+              "Failed to create file in sandbox, continuing with database save..."
+            );
+          } else {
+            console.log("✅ File created in sandbox for immediate preview");
+          }
+        } catch (sandboxError) {
+          console.warn(
+            "Sandbox file creation failed, continuing with database save:",
+            sandboxError
+          );
+        }
+
+        // Step 2: Save to database with PATCH endpoint for persistence
+        const response = await fetch(
+          `/api/v1/projects/${engine.projects.currentProject?.id}/files/update`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              files: {
+                [filePath.trim()]: newContent,
+              },
+              metadata: {
+                source: "editor",
+                updatedBy: "user",
+              },
             }),
           }
         );

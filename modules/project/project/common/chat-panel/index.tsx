@@ -6,6 +6,7 @@ import { observer } from "mobx-react-lite";
 import { Chats } from "./chats";
 import { MessageRenderer } from "./renderers";
 import { Models } from "@/components/common/models";
+import { PackageProgress } from "./package-progress";
 import { modelsConfig } from "@/lib/config/models.config";
 import { useAuthGuard } from "@/lib/hooks/use-auth-guard";
 import AuthModal from "@/app/auth/_components/auth-modal";
@@ -317,6 +318,13 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
                   ></div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Package Installation Progress */}
+          {engine.chat.packageProgress.stage && (
+            <div className="flex justify-start">
+              <PackageProgress state={engine.chat.packageProgress} />
             </div>
           )}
 

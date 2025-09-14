@@ -167,21 +167,19 @@ export class ProjectsManager {
     this.error = null;
 
     try {
-      const allFiles = this.engine.files.getAllFiles();
+      // Use changed files only to prevent overwriting unchanged files with empty content
+      const changedFiles = this.engine.files.getChangedFiles();
 
-      // Validate that we have actual file content before saving
-      const hasValidFiles = Object.values(allFiles).some(
+      // SAFETY CHECK: Validate that we have actual file content before saving
+      const hasValidFiles = Object.values(changedFiles).some(
         (content) => typeof content === "string" && content.trim().length > 0
       );
 
-      if (!hasValidFiles && Object.keys(allFiles).length > 0) {
-        console.warn("Preventing save of empty files to avoid data loss");
+      if (!hasValidFiles && Object.keys(changedFiles).length > 0) {
+        console.warn("⚠️ Preventing save of empty files to avoid data loss");
         this.isSaving = false;
         return;
       }
-
-      // Use changed files only to prevent overwriting unchanged files with empty content
-      const changedFiles = this.engine.files.getChangedFiles();
 
       // If no files have changed, don't save
       if (Object.keys(changedFiles).length === 0) {
@@ -197,7 +195,32 @@ export class ProjectsManager {
         Object.keys(changedFiles)
       );
 
-      // Use the new PATCH endpoint for safer file updates
+      // PROPER FLOW: Update sandbox first, then database
+      // Step 1: Update files in sandbox for immediate preview
+      try {
+        const sandboxResponse = await fetch("/api/v1/sandbox/files/write", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            files: changedFiles,
+          }),
+        });
+
+        if (!sandboxResponse.ok) {
+          console.warn(
+            "Failed to update sandbox during auto-save, continuing with database save..."
+          );
+        } else {
+          console.log("✅ Files updated in sandbox for immediate preview");
+        }
+      } catch (sandboxError) {
+        console.warn(
+          "Sandbox update failed during auto-save, continuing with database save:",
+          sandboxError
+        );
+      }
+
+      // Step 2: Save to database with PATCH endpoint for persistence
       const response = await fetch(
         `/api/v1/projects/${this.currentProject.id}/files/update`,
         {
