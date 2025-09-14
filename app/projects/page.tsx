@@ -249,9 +249,18 @@ function ProjectsList() {
             }}
           >
             <div className="text-center">
-              <div className="text-fg-60 text-4xl mb-2 group-hover:text-fg-50 group-focus:text-fg-50 transition-colors">
-                +
-              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 20 20"
+                className="text-fg-60 group-hover:text-fg-50 group-focus:text-fg-50 transition-colors mb-2"
+              >
+                <path
+                  fill="currentColor"
+                  d="M10 2.5a.5.5 0 0 1 .5.5v6.5H17a.5.5 0 0 1 0 1h-6.5V17a.5.5 0 0 1-1 0v-6.5H3a.5.5 0 0 1 0-1h6.5V3a.5.5 0 0 1 .5-.5"
+                />
+              </svg>
               <div className="text-fg-60 text-sm group-hover:text-fg-50 group-focus:text-fg-50 transition-colors">
                 New project
               </div>
@@ -341,9 +350,18 @@ function ProjectsList() {
               }}
             >
               <div className="text-center">
-                <div className="text-fg-60 text-3xl mb-1 group-hover:text-fg-50 group-focus:text-fg-50 transition-colors">
-                  +
-                </div>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="26"
+                  height="26"
+                  viewBox="0 0 20 20"
+                  className="text-fg-60 group-hover:text-fg-50 group-focus:text-fg-50 transition-colors"
+                >
+                  <path
+                    fill="currentColor"
+                    d="M10 2.5a.5.5 0 0 1 .5.5v6.5H17a.5.5 0 0 1 0 1h-6.5V17a.5.5 0 0 1-1 0v-6.5H3a.5.5 0 0 1 0-1h6.5V3a.5.5 0 0 1 .5-.5"
+                  />
+                </svg>
               </div>
             </div>
             <div className="w-full">

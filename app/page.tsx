@@ -5,7 +5,7 @@ import Header from "@/modules/home/components/header";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-bk-60">
+    <div className="min-h-screen bg-bk-60 relative">
       {/* Header */}
       <Header />
 
@@ -17,6 +17,18 @@ export default function Home() {
           </div>
           <PromptInput />
         </div>
+      </div>
+
+      {/* Build with Kiro link - bottom right */}
+      <div className="fixed bottom-6 right-6">
+        <a
+          href="https://kiro.dev/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-fg-60 hover:text-fg-50 text-xs transition-colors cursor-pointer"
+        >
+          Build with Kiro
+        </a>
       </div>
     </div>
   );

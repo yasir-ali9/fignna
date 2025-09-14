@@ -1,20 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { modelsConfig } from "@/lib/config/models.config";
 
 interface ModelsProps {
   selectedModel: string;
   onModelChange: (modelId: string) => void;
   disabled?: boolean;
+  direction?: "up" | "down"; // Add direction prop
 }
 
 export function Models({
   selectedModel,
   onModelChange,
   disabled = false,
+  direction = "down", // Default to down
 }: ModelsProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleEscape);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen]);
 
   const handleModelSelect = (modelId: string) => {
     onModelChange(modelId);
@@ -30,16 +58,16 @@ export function Models({
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={menuRef}>
       {/* Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          w-full flex items-center justify-between px-2 py-1.5 
-          bg-bk-50 border border-bd-50 rounded text-[11px] text-fg-50
-          hover:bg-bk-60 transition-colors cursor-pointer
+          w-full flex items-center justify-between px-3 py-1.5 
+          bg-bk-40 border border-bd-50 rounded-lg text-[11px] text-fg-30
+          hover:bg-bk-30 hover:text-fg-10 focus:bg-bk-30 focus:text-fg-10 focus:outline-none transition-all cursor-pointer
           ${disabled ? "opacity-50 cursor-not-allowed" : ""}
         `}
       >
@@ -63,34 +91,29 @@ export function Models({
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-10"
-            onClick={() => setIsOpen(false)}
-          />
-
-          {/* Menu */}
-          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-bk-50 border border-bd-50 rounded shadow-lg max-h-60 overflow-y-auto">
-            {modelsConfig.availableModels.map((modelId) => (
-              <button
-                key={modelId}
-                onClick={() => handleModelSelect(modelId)}
-                className={`
-                  w-full px-2 py-1.5 text-left text-[11px] hover:bg-bk-60 
-                  transition-colors cursor-pointer
-                  ${
-                    selectedModel === modelId
-                      ? "bg-bk-60 text-fg-30"
-                      : "text-fg-50"
-                  }
-                `}
-              >
-                {getDisplayName(modelId)}
-              </button>
-            ))}
-          </div>
-        </>
+        <div
+          className={`absolute left-0 right-0 z-50 bg-bk-40 border border-bd-50 rounded-lg shadow-lg py-1 px-1 w-max min-w-full max-h-60 overflow-y-auto ${
+            direction === "up" ? "bottom-full mb-1" : "top-full mt-1"
+          }`}
+        >
+          {modelsConfig.availableModels.map((modelId) => (
+            <button
+              key={modelId}
+              onClick={() => handleModelSelect(modelId)}
+              className={`
+                w-full px-3 py-1.5 text-left flex items-center tracking-tight whitespace-nowrap rounded-md transition-all cursor-pointer
+                ${
+                  selectedModel === modelId
+                    ? "bg-bk-30 text-fg-10"
+                    : "text-fg-30 hover:bg-bk-30 hover:text-fg-10 focus:bg-bk-30 focus:text-fg-10 focus:outline-none"
+                }
+              `}
+              style={{ fontSize: "11px" }}
+            >
+              <span>{getDisplayName(modelId)}</span>
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );

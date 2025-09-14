@@ -214,16 +214,6 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
             </button>
           </div>
 
-          {/* Model Selector */}
-          <div className="mt-2">
-            <div className="text-[10px] text-fg-60 mb-1">Model</div>
-            <Models
-              selectedModel={selectedModel}
-              onModelChange={setSelectedModel}
-              disabled={engine.chat.isSendingMessage}
-            />
-          </div>
-
           {/* Error Display */}
           {engine.chat.error && (
             <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs text-red-600">
@@ -332,62 +322,78 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-bd-50 p-3">
-          <div className="relative">
-            <textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                !engine.sandbox.currentSandbox
-                  ? "Create a sandbox from the dropdown above..."
-                  : engine.chat.isSendingMessage
-                  ? "Please wait..."
-                  : "Describe what you want to build..."
-              }
-              rows={1}
-              className="w-full pr-10 pl-3 py-2 bg-bk-40 border border-bd-50 rounded-lg placeholder-fg-60
-                     focus:outline-none focus:ring-0 focus:border-ac-01 text-fg-50
-                     resize-none overflow-hidden min-h-9 max-h-24"
-              style={{
-                fontSize: "11px",
-                borderWidth: "1px",
-                transition: "border-color 0.15s ease-in-out",
-              }}
-              onInput={(e) => {
-                const target = e.target as HTMLTextAreaElement;
-                target.style.height = "36px"; // Reset height
-                target.style.height = Math.min(target.scrollHeight, 96) + "px"; // Max 4 lines
-              }}
-              disabled={
-                !engine.chat.canSendMessage || !engine.sandbox.currentSandbox
-              }
-            />
-            {/* Send Arrow Button */}
-            <button
-              onClick={() => handleSendMessage()}
-              disabled={
-                !inputValue.trim() ||
-                !engine.chat.canSendMessage ||
-                !engine.sandbox.currentSandbox
-              }
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 w-6 h-6 flex items-center justify-center
-                     text-fg-60 hover:text-fg-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="Send (Enter)"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="currentColor"
+        <div className="p-3">
+          <div className="bg-bk-40 border border-bd-50 rounded-xl p-3">
+            <div className="relative">
+              <textarea
+                ref={textareaRef}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  !engine.sandbox.currentSandbox
+                    ? "Create a sandbox from the dropdown above..."
+                    : engine.chat.isSendingMessage
+                    ? "Please wait..."
+                    : "Describe what you want to build..."
+                }
+                rows={1}
+                className="w-full bg-transparent text-fg-50 placeholder-fg-60
+                       border-none outline-none resize-none overflow-hidden min-h-6 max-h-24"
+                style={{
+                  fontSize: "11px",
+                }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = "24px"; // Reset height
+                  target.style.height =
+                    Math.min(target.scrollHeight, 96) + "px"; // Max 4 lines
+                }}
+                disabled={
+                  !engine.chat.canSendMessage || !engine.sandbox.currentSandbox
+                }
+              />
+            </div>
+
+            {/* Bottom row with model selector and send button */}
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-bd-50/20">
+              <div className="flex items-center gap-2">
+                {/* Model Selector */}
+                <div className="w-32">
+                  <Models
+                    selectedModel={selectedModel}
+                    onModelChange={setSelectedModel}
+                    disabled={engine.chat.isSendingMessage}
+                    direction="up"
+                  />
+                </div>
+              </div>
+
+              {/* Send Arrow Button */}
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={
+                  !inputValue.trim() ||
+                  !engine.chat.canSendMessage ||
+                  !engine.sandbox.currentSandbox
+                }
+                className="w-6 h-6 flex items-center justify-center
+                       text-fg-60 hover:text-fg-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                title="Send (Enter)"
               >
-                <path
-                  d="M21 4a1 1 0 0 1 .993.883L22 5v6.5a3.5 3.5 0 0 1-3.308 3.495L18.5 15H5.415l3.292 3.293a1 1 0 0 1 .083 1.32l-.083.094a1 1 0 0 1-1.32.083l-.094-.083l-5-5a1.008 1.008 0 0 1-.097-.112l-.071-.11l-.054-.114l-.035-.105l-.025-.118l-.007-.058L2 14l.003-.075l.017-.126l.03-.111l.044-.111l.052-.098l.064-.092l.083-.094l5-5a1 1 0 0 1 1.497 1.32l-.083.094L5.415 13H18.5a1.5 1.5 0 0 0 1.493-1.356L20 11.5V5a1 1 0 0 1 1-1z"
-                  fillRule="nonzero"
-                />
-              </svg>
-            </button>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M21 4a1 1 0 0 1 .993.883L22 5v6.5a3.5 3.5 0 0 1-3.308 3.495L18.5 15H5.415l3.292 3.293a1 1 0 0 1 .083 1.32l-.083.094a1 1 0 0 1-1.32.083l-.094-.083l-5-5a1.008 1.008 0 0 1-.097-.112l-.071-.11l-.054-.114l-.035-.105l-.025-.118l-.007-.058L2 14l.003-.075l.017-.126l.03-.111l.044-.111l.052-.098l.064-.092l.083-.094l5-5a1 1 0 0 1 1.497 1.32l-.083.094L5.415 13H18.5a1.5 1.5 0 0 0 1.493-1.356L20 11.5V5a1 1 0 0 1 1-1z"
+                    fillRule="nonzero"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>

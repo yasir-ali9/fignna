@@ -77,28 +77,14 @@ export default function PromptInput() {
   };
 
   const handleFileUpload = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.multiple = true;
-    input.accept = "image/*,.pdf,.doc,.docx,.txt";
-    input.onchange = (e) => {
-      const files = (e.target as HTMLInputElement).files;
-      if (files) {
-        console.log(
-          "Files selected:",
-          Array.from(files).map((f) => f.name)
-        );
-        // TODO: Handle file upload logic here
-      }
-    };
-    input.click();
+    toast("Coming soon", "info");
   };
 
   return (
     <>
       <div className="w-full max-w-6xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
-          <div className="bg-bk-50 rounded-lg p-4">
+          <div className="bg-bk-40 border border-bd-50 rounded-xl shadow-lg p-4">
             {/* Input Area */}
             <div className="relative">
               <textarea
@@ -109,15 +95,21 @@ export default function PromptInput() {
                 rows={2}
                 className="
                 w-full bg-transparent text-fg-30 placeholder-fg-60 
-                border-none outline-none resize-none text-sm leading-relaxed
+                border-none outline-none resize-none text-sm leading-relaxed overflow-hidden min-h-12 max-h-32
               "
                 style={{ fontSize: "12px" }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = "48px"; // Reset height (min-h-12 = 48px)
+                  target.style.height =
+                    Math.min(target.scrollHeight, 128) + "px"; // Max 128px (max-h-32)
+                }}
               />
             </div>
 
             {/* Status Indicator */}
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-bd-50/20">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={handleFileUpload}
@@ -143,6 +135,7 @@ export default function PromptInput() {
                     selectedModel={selectedModel}
                     onModelChange={setSelectedModel}
                     disabled={isLoading}
+                    direction="down"
                   />
                 </div>
               </div>
