@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Design System Color Validator",
+  "description": "Validates and enforces the use of custom CSS variables and Tailwind theme colors (bk-, fg-, bd-, ac-) instead of arbitrary Tailwind colors or hardcoded color values in React components and CSS files",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.tsx",
+      "**/*.ts",
+      "**/*.jsx",
+      "**/*.js",
+      "**/*.css",
+      "**/*.scss"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Please review the modified file and validate/enforce the design system color usage according to these rules:\n\n1. **Replace Standard Tailwind Colors** with design system equivalents:\n   - bg-white → bg-bk-70\n   - bg-gray-50/bg-gray-100 → bg-bk-60 or bg-bk-50\n   - bg-gray-200/bg-gray-300 → bg-bk-40 or bg-bk-30\n   - bg-black → bg-fg-30\n   - text-black → text-fg-30\n   - text-white → text-fg-30\n   - text-gray-500/text-gray-600 → text-fg-60 or text-fg-70\n   - text-gray-800/text-gray-900 → text-fg-40 or text-fg-50\n   - border-gray-200/border-gray-300 → border-bd-50\n   - bg-red-500 and similar accent colors → bg-ac-01\n\n2. **Replace Arbitrary Color Values**:\n   - bg-[#ffffff] → bg-bk-70\n   - text-[#181818] → text-fg-30\n   - border-[#d8d8d8] → border-bd-50\n\n3. **Replace CSS Custom Properties in Style Attributes**:\n   - style=\"background: rgb(var(--bk-70))\" → className=\"bg-bk-70\"\n   - style=\"color: rgb(var(--fg-50))\" → className=\"text-fg-50\"\n\n**Design System Colors:**\n- Background: bg-bk-30 (lightest) to bg-bk-70 (darkest)\n- Text: text-fg-30 (highest contrast) to text-fg-70 (lowest contrast)  \n- Border: border-bd-50 (standard borders)\n- Accent: bg-ac-01/text-ac-01/border-ac-01 (#d94453)\n\n**What NOT to change:**\n- Colors already using design system (bk-, fg-, bd-, ac- prefixes)\n- Functional Tailwind classes (layout, spacing, typography)\n- External library colors unless explicitly needed\n\nPlease scan the file and replace any non-compliant color usage with the appropriate design system colors while maintaining proper contrast and visual hierarchy."
+  }
+}

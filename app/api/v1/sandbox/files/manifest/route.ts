@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 import {
   parseJavaScriptFile,
   buildComponentTree,
-} from "@/modules/project/file-parser";
+} from "@/lib/utils/file-parser";
 import { FileManifest, FileInfo, RouteInfo } from "@/lib/types/file-manifest";
 import type { SandboxState } from "@/lib/types/sandbox";
 

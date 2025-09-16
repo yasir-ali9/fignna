@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import AuthForm from "./_components/form";
+import AuthForm from "../../modules/auth/form";
 
 // Server component to check authentication status
 export default async function AuthPage() {

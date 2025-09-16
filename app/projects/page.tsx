@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import Header from "./_components/header";
-import { ContextMenu, useContextMenu } from "@/components/common/dropdowns";
+import Header from "../../modules/projects/header";
+import { ContextMenu, useContextMenu } from "@/components/common/menu";
 
 interface Project {
   id: string;
@@ -166,19 +166,19 @@ function ProjectsList() {
   // Context menu items
   const contextMenuItems = selectedProject
     ? [
-        {
-          label: "Open here",
-          onClick: () => handleOpenProject(selectedProject),
-        },
-        {
-          label: "Open in new tab",
-          onClick: () => handleOpenInNewTab(selectedProject),
-        },
-        {
-          label: "Rename project",
-          onClick: () => handleRenameProject(selectedProject),
-        },
-      ]
+      {
+        label: "Open here",
+        onClick: () => handleOpenProject(selectedProject),
+      },
+      {
+        label: "Open in new tab",
+        onClick: () => handleOpenInNewTab(selectedProject),
+      },
+      {
+        label: "Rename project",
+        onClick: () => handleRenameProject(selectedProject),
+      },
+    ]
     : [];
 
   // Format relative time

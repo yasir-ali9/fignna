@@ -1,7 +1,7 @@
 "use client";
 
-import PromptInput from "@/modules/home/components/prompt-input";
-import Header from "@/modules/home/components/header";
+import PromptInput from "@/modules/home/prompt-input";
+import Header from "@/modules/home/header";
 
 export default function Home() {
   return (

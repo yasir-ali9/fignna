@@ -1,0 +1,21 @@
+{
+  "enabled": true,
+  "name": "Next.js TypeScript Validator",
+  "description": "Automatically validates and fixes TypeScript types in Next.js applications, focusing on eliminating 'any' types and providing proper type annotations for pages, API routes, components, and data fetching functions to prevent deployment errors",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "**/*.ts",
+      "**/*.tsx",
+      "next.config.ts",
+      "next.config.js",
+      "middleware.ts",
+      "middleware.js"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "You are a Next.js TypeScript expert. Analyze the changed files and fix any TypeScript issues following these priorities:\n\n1. **Replace all 'any' types** with proper Next.js types:\n   - Page components: Use `NextPage<Props>` or proper component props interface\n   - API routes: Use `NextApiRequest` and `NextApiResponse<T>`\n   - getServerSideProps/getStaticProps: Use `GetServerSideProps<T>` and `GetStaticProps<T>`\n   - App Router: Type params as `{ [key: string]: string }` and searchParams as `{ [key: string]: string | string[] | undefined }`\n   - Middleware: Use `NextRequest` and `NextResponse`\n\n2. **Add missing type annotations** for:\n   - Function parameters and return types\n   - Component props interfaces\n   - API response types\n   - Environment variables\n   - Custom hooks return types\n   - Context provider types\n\n3. **Fix Next.js specific patterns**:\n   - Ensure page components have proper prop typing\n   - Add response type interfaces for API routes\n   - Type dynamic route parameters correctly\n   - Add proper types for Next.js components (Image, Link, etc.)\n   - Type data fetching functions (SWR, React Query, fetch)\n\n4. **Environment and configuration**:\n   - Type environment variables properly\n   - Convert next.config.js to next.config.ts if needed\n   - Add proper types for build-time configurations\n\nFocus on preventing deployment errors by ensuring all TypeScript checks pass. Provide specific fixes for each file with proper Next.js type imports and interfaces."
+  }
+}

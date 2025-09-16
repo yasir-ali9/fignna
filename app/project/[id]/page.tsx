@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { EditMode } from "@/modules/project/project/edit-mode";
-import { ViewModeComponent } from "@/modules/project/project/view-mode";
-import { CodeMode } from "@/modules/project/project/code-mode";
-import { TopRibbon } from "@/modules/project/project/common/top-ribbon";
-import { EditorProvider } from "@/modules/project/providers/editor-provider";
+import { EditMode } from "@/modules/project/edit-mode";
+import { ViewModeComponent } from "@/modules/project/view-mode";
+import { CodeMode } from "@/modules/project/code-mode";
+import { TopRibbon } from "@/modules/project/common/top-ribbon";
+import { EditorProvider } from "@/lib/providers/editor-provider";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { observer } from "mobx-react-lite";
 

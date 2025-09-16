@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { EditMode } from "@/modules/project/project/edit-mode";
-import { ViewModeComponent } from "@/modules/project/project/view-mode";
-import { TopRibbon } from "@/modules/project/project/common/top-ribbon";
-import { EditorProvider } from "@/modules/project/providers/editor-provider";
+import { EditMode } from "@/modules/project/edit-mode";
+import { ViewModeComponent } from "@/modules/project/view-mode";
+import { TopRibbon } from "@/modules/project/common/top-ribbon";
+import { EditorProvider } from "@/lib/providers/editor-provider";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { observer } from "mobx-react-lite";
 
@@ -62,7 +62,7 @@ function ProjectPageInner() {
           <h1 className="text-2xl font-semibold text-fg-30 mb-4">{error}</h1>
           <Link
             href="/"
-            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-md hover:from-purple-600 hover:to-pink-600 transition-colors"
+            className="px-4 py-2 bg-ac-01 text-fg-30 rounded-md hover:bg-ac-01/90 transition-colors cursor-pointer"
           >
             Go Home
           </Link>
