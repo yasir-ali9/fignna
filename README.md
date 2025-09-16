@@ -54,7 +54,7 @@ Contributions are welcome! Please read our contributing guidelines and submit pu
 
 ## License
 
-MIT License - see [LICENSE](./LICENSE) for details
+Apache-2.0 license - see [LICENSE](./LICENSE) for details
 
 ---
 
