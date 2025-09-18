@@ -85,7 +85,7 @@ function ProjectPageInner() {
   // Show loading state
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-bk-40">
+      <div className="h-screen w-full flex items-center justify-center bg-bk-60">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fg-50 mx-auto mb-4"></div>
           <div className="text-fg-50 mb-2">Loading project...</div>

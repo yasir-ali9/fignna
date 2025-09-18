@@ -57,7 +57,7 @@ function ProjectPageInner() {
   // Show error state if any
   if (error) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-bk-40">
+      <div className="h-screen w-full flex items-center justify-center bg-bk-60">
         <div className="text-center">
           <h1 className="text-2xl font-semibold text-fg-30 mb-4">{error}</h1>
           <Link
@@ -72,7 +72,7 @@ function ProjectPageInner() {
   }
 
   return (
-    <div className="h-screen w-full max-w-full flex flex-col bg-bk-40 overflow-hidden">
+    <div className="h-screen w-full max-w-full flex flex-col bg-bk-60 overflow-hidden">
       {/* Top ribbon with logo dropdown and mode switcher */}
       <TopRibbon project={project} />
 

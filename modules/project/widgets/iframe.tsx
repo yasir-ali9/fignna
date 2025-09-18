@@ -3,6 +3,8 @@
 import { observer } from "mobx-react-lite";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { SandboxLoading } from "./sandbox-loading";
+// Import the reusable turning-on widget
+import TurningOn, { LoadingStates } from "./turning-on";
 import {
   IframeCommunication,
   createParentCommunication,
@@ -14,26 +16,32 @@ import type {
 } from "@/lib/iframe/penpal-types";
 
 interface IframeProps {
-  /** The URL to preview */
+  /** URL to load in iframe */
   url?: string;
-  /** Custom CSS classes */
+  /** CSS classes */
   className?: string;
-  /** Loading state message */
+  /** Loading message */
   loadingMessage?: string;
-  /** Error state message */
+  /** Error message */
   errorMessage?: string;
-  /** Whether to show a loading state */
+  /** Whether iframe is loading */
   isLoading?: boolean;
   /** Frame ID for communication */
   frameId?: string;
-  /** Enable advanced iframe communication */
+  /** Enable iframe communication */
   enableCommunication?: boolean;
-  /** Callback when element is selected in iframe */
+  /** Element selection handler */
   onElementSelected?: (element: DomElement) => void;
-  /** Callback when element is hovered in iframe */
+  /** Element hover handler */
   onElementHovered?: (element: DomElement | null) => void;
-  /** Callback when DOM changes in iframe */
+  /** DOM change handler */
   onDomChanged?: (elements: DomElement[]) => void;
+  /** Whether to show TurningOn widget instead of SandboxLoading */
+  showTurningOn?: boolean;
+  /** TurningOn widget title */
+  turningOnTitle?: string;
+  /** TurningOn widget subtitle */
+  turningOnSubtitle?: string;
 }
 
 export const Iframe = observer(
@@ -48,6 +56,9 @@ export const Iframe = observer(
     onElementSelected,
     onElementHovered,
     onDomChanged,
+    showTurningOn = false,
+    turningOnTitle,
+    turningOnSubtitle,
   }: IframeProps) => {
     const [iframeLoading, setIframeLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
@@ -223,7 +234,14 @@ export const Iframe = observer(
       return (
         <div className={`${className}`}>
           {isLoading ? (
-            <SandboxLoading />
+            showTurningOn && turningOnTitle ? (
+              <TurningOn
+                title={turningOnTitle}
+                subtitle={turningOnSubtitle}
+              />
+            ) : (
+              <SandboxLoading />
+            )
           ) : (
             <div className="flex items-center justify-center bg-bk-60 h-full">
               <div className="text-center text-fg-40">
@@ -295,7 +313,14 @@ export const Iframe = observer(
         {/* Loading overlay */}
         {iframeLoading && (
           <div className="absolute inset-0 bg-white z-10">
-            <SandboxLoading />
+            {showTurningOn && turningOnTitle ? (
+              <TurningOn
+                title={turningOnTitle}
+                subtitle={turningOnSubtitle}
+              />
+            ) : (
+              <SandboxLoading />
+            )}
           </div>
         )}
 
@@ -303,9 +328,8 @@ export const Iframe = observer(
         {enableCommunication && !iframeLoading && (
           <div className="absolute top-2 right-2 z-20">
             <div
-              className={`w-2 h-2 rounded-full ${
-                isCommReady ? "bg-green-400" : "bg-gray-400"
-              }`}
+              className={`w-2 h-2 rounded-full ${isCommReady ? "bg-green-400" : "bg-gray-400"
+                }`}
               title={
                 isCommReady
                   ? "Communication ready"

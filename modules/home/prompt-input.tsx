@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Models } from "@/components/models";
 import { modelsConfig } from "@/lib/config/models.config";
 import { useAuthGuard } from "@/lib/hooks/use-auth-guard";
-import { useToast } from "@/components/common/toast/use-toast";
+import { useToast } from "@/components/toast/use-toast";
 import AuthModal from "@/modules/auth/auth-modal";
 
 export default function PromptInput() {
@@ -130,7 +130,7 @@ export default function PromptInput() {
                 </button>
 
                 {/* Model Selector */}
-                <div className="w-40">
+                <div className="w-auto">
                   <Models
                     selectedModel={selectedModel}
                     onModelChange={setSelectedModel}
@@ -138,15 +138,15 @@ export default function PromptInput() {
                     direction="down"
                   />
                 </div>
+
               </div>
               <button
                 type="submit"
                 disabled={!prompt.trim() || isLoading}
-                className={`transition-all duration-200 ${
-                  prompt.trim() && !isLoading
-                    ? "text-fg-30 hover:text-fg-10 cursor-pointer"
-                    : "text-fg-70 cursor-not-allowed"
-                }`}
+                className={`transition-all duration-200 ${prompt.trim() && !isLoading
+                  ? "text-fg-30 hover:text-fg-10 cursor-pointer"
+                  : "text-fg-70 cursor-not-allowed"
+                  }`}
               >
                 {isLoading ? (
                   <svg

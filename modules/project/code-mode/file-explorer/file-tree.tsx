@@ -11,6 +11,7 @@ import {
   CommandLineIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
+import { Loader2 } from "lucide-react";
 import { FileIcon } from "../icons/file-icons";
 import { InlineCreator } from "./inline-creator";
 
@@ -18,6 +19,10 @@ interface FileTreeProps {
   projectId: string;
   onTerminalToggle?: () => void;
   showTerminalButton?: boolean;
+  isTerminalActive?: boolean;
+  onSplitViewToggle?: () => void;
+  showSplitViewButton?: boolean;
+  isSplitViewActive?: boolean;
 }
 
 /**
@@ -30,6 +35,10 @@ export const FileTree = observer(
     projectId,
     onTerminalToggle,
     showTerminalButton = false,
+    isTerminalActive = false,
+    onSplitViewToggle,
+    showSplitViewButton = false,
+    isSplitViewActive = false,
   }: FileTreeProps) => {
     const engine = useEditorEngine();
 
@@ -577,7 +586,7 @@ export const FileTree = observer(
     ) {
       return (
         <div className="p-4 text-center">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-fg-50 mx-auto mb-2"></div>
+          <Loader2 className="animate-spin h-4 w-4 text-fg-50 mx-auto mb-2" />
           <div className="text-[11px] text-fg-60">
             {engine.sandbox.isRestarting
               ? "Restarting server..."
@@ -602,9 +611,11 @@ export const FileTree = observer(
     }
 
     return (
-      <div className="h-full overflow-y-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between px-3 py-2">
+      <div className="h-full flex flex-col">
+        {/* File Tree Content */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between px-3 py-2">
           <span className="text-xs font-medium text-fg-40 uppercase tracking-wide">
             Files
           </span>
@@ -661,15 +672,6 @@ export const FileTree = observer(
             >
               <ArrowPathIcon className="w-3.5 h-3.5 text-fg-60" />
             </button>
-            {showTerminalButton && onTerminalToggle && (
-              <button
-                className="p-1 rounded cursor-pointer transition-colors hover:text-fg-30"
-                title="Toggle Terminal"
-                onClick={onTerminalToggle}
-              >
-                <CommandLineIcon className="w-3.5 h-3.5 text-fg-60" />
-              </button>
-            )}
             <button
               className="p-1 rounded cursor-pointer transition-colors hover:text-fg-30"
               title="New File"
@@ -765,6 +767,54 @@ export const FileTree = observer(
             </>
           )}
         </div>
+        </div>
+
+        {/* Bottom Controls */}
+        {(showSplitViewButton || showTerminalButton) && (
+          <div className="bg-bk-50 px-3 py-2">
+            <div className="flex items-center justify-between">
+              {/* Feedback text on the left */}
+              <div className="text-[11px] text-fg-60 hover:text-fg-50 transition-colors cursor-pointer">
+                Feedback
+              </div>
+              
+              {/* Icons aligned to the right */}
+              <div className="flex items-center gap-2">
+                {/* Split View Button */}
+                {showSplitViewButton && onSplitViewToggle && (
+                  <button
+                    className={`flex items-center justify-center p-1.5 transition-colors rounded-md cursor-pointer ${
+                      isSplitViewActive
+                        ? "bg-bk-30 text-fg-50"
+                        : "text-fg-60 hover:text-fg-50 hover:bg-bk-40"
+                    }`}
+                    title="Toggle Split View"
+                    onClick={onSplitViewToggle}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" className={isSplitViewActive ? "text-fg-50" : "text-fg-60"}>
+                      <path fill="currentColor" d="M8.5 1.5a.5.5 0 0 0-1 0v13a.5.5 0 0 0 1 0zM1 5.5A2.5 2.5 0 0 1 3.5 3h3v1h-3A1.5 1.5 0 0 0 2 5.5v5A1.5 1.5 0 0 0 3.5 12h3v1h-3A2.5 2.5 0 0 1 1 10.5zM9.5 4V3h3A2.5 2.5 0 0 1 15 5.5v5a2.5 2.5 0 0 1-2.5 2.5h-3v-1h3a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 12.5 4z"/>
+                    </svg>
+                  </button>
+                )}
+
+                {/* Terminal Button */}
+                {showTerminalButton && onTerminalToggle && (
+                  <button
+                    className={`flex items-center justify-center p-1.5 transition-colors rounded-md cursor-pointer ${
+                      isTerminalActive
+                        ? "bg-bk-30 text-fg-50"
+                        : "text-fg-60 hover:text-fg-50 hover:bg-bk-40"
+                    }`}
+                    title="Toggle Terminal"
+                    onClick={onTerminalToggle}
+                  >
+                    <CommandLineIcon className={`w-4 h-4 ${isTerminalActive ? "text-fg-50" : "text-fg-60"}`} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

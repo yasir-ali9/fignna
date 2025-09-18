@@ -117,9 +117,8 @@ export class ProjectsManager {
           syncError
         );
         // Store sync error separately so UI can show it
-        this.error = `Project loaded but sandbox sync failed: ${
-          syncError instanceof Error ? syncError.message : "Unknown error"
-        }`;
+        this.error = `Project loaded but sandbox sync failed: ${syncError instanceof Error ? syncError.message : "Unknown error"
+          }`;
       }
     } catch (error) {
       this.error = error instanceof Error ? error.message : "Unknown error";
@@ -189,8 +188,7 @@ export class ProjectsManager {
       }
 
       console.log(
-        `[ProjectsManager] Saving ${
-          Object.keys(changedFiles).length
+        `[ProjectsManager] Saving ${Object.keys(changedFiles).length
         } changed files:`,
         Object.keys(changedFiles)
       );

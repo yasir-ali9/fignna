@@ -6,7 +6,7 @@ import { useTheme } from "@/lib/providers/theme-provider";
 import {
   ContextMenuNested,
   useContextMenuNested,
-} from "@/components/common/menu/context-menu-nesting";
+} from "@/components/menu/context-menu-nesting";
 
 export const LogoDropdown = observer(() => {
   const router = useRouter();

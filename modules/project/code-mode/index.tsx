@@ -7,7 +7,6 @@
 export { CodeMirrorEditor } from "./editor-core/codemirror-editor";
 export { TabBar } from "./editor-tabs/tab-bar";
 export { FileTree } from "./file-explorer/file-tree";
-export { NewFileModal } from "./file-explorer/new-file-modal";
 
 // Panel components
 export { CodePanel } from "./panels/code-panel";

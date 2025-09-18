@@ -7,7 +7,7 @@ import { AppMode } from "@/lib/stores/editor/state";
 import {
   ContextMenu,
   useContextMenu,
-} from "@/components/common/menu/context-menu";
+} from "@/components/menu/context-menu";
 
 export const SandboxDropdown = observer(function SandboxDropdown() {
   const engine = useEditorEngine();
@@ -242,7 +242,7 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
       {/* Sandbox Button with Icon and Status Dot */}
       <button
         onClick={handleSandboxClick}
-        className="flex items-center gap-2 px-2 py-1.5 hover:bg-bk-40 rounded-lg transition-colors group cursor-pointer"
+        className="flex items-center gap-1 px-2 py-1.5 hover:bg-bk-40 rounded-lg transition-colors group cursor-pointer"
       >
         {/* Sandbox Icon */}
         <div className="w-4 h-4 text-fg-50 group-hover:text-fg-30 relative">

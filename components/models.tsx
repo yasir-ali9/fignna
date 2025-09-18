@@ -65,13 +65,14 @@ export function Models({
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
         className={`
-          w-full flex items-center justify-between px-3 py-1.5 
-          bg-bk-40 border border-bd-50 rounded-lg text-[11px] text-fg-30
+          w-auto flex items-center justify-between px-3 py-1.5 
+          bg-bk-30 border border-bd-50 rounded-lg text-[11px] text-fg-30
           hover:bg-bk-30 hover:text-fg-10 focus:bg-bk-30 focus:text-fg-10 focus:outline-none transition-all cursor-pointer
           ${disabled ? "opacity-50 cursor-not-allowed" : ""}
         `}
       >
-        <span className="truncate">{getDisplayName(selectedModel)}</span>
+        <span className="truncate mr-2">{getDisplayName(selectedModel)}</span>
+        {/* Dropdown Icon */}
         <svg
           className={`w-3 h-3 text-fg-60 transition-transform ${
             isOpen ? "rotate-180" : ""

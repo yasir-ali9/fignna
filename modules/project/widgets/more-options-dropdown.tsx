@@ -6,7 +6,7 @@ import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import {
   ContextMenu,
   useContextMenu,
-} from "@/components/common/menu/context-menu";
+} from "@/components/menu/context-menu";
 
 export const MoreOptionsDropdown = observer(function MoreOptionsDropdown() {
   const engine = useEditorEngine();
@@ -19,7 +19,7 @@ export const MoreOptionsDropdown = observer(function MoreOptionsDropdown() {
 
     setIsDownloading(true);
     try {
-      console.log("🔽 Downloading project...");
+      console.log("Downloading project...");
 
       const response = await fetch(
         `/api/v1/projects/${engine.projects.currentProject.id}/download`,
@@ -111,7 +111,7 @@ export const MoreOptionsDropdown = observer(function MoreOptionsDropdown() {
       {/* More Options Button */}
       <button
         onClick={handleMoreOptionsClick}
-        className="flex items-center gap-2 px-2 py-1.5 hover:bg-bk-40 rounded-lg transition-colors group cursor-pointer"
+        className="flex items-center gap-1 px-2 py-1.5 hover:bg-bk-40 rounded-lg transition-colors group cursor-pointer"
       >
         {/* More Options Icon */}
         <div className="w-4 h-4 text-fg-50 group-hover:text-fg-30">

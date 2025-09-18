@@ -38,7 +38,7 @@ export const TabBar = observer(() => {
   }
 
   return (
-    <div className="flex items-center justify-between bg-bk-50 overflow-x-auto">
+    <div className="flex items-center justify-between bg-bk-60 overflow-x-auto">
       {/* Tabs Container */}
       <div className="flex items-center overflow-x-auto">
         {engine.files.openTabs.map((tab) => (

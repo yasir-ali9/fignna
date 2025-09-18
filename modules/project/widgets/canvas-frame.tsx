@@ -5,6 +5,8 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { Iframe } from "./iframe";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import type { DomElement } from "@/lib/iframe/penpal-types";
+// Import the loading states for TurningOn widget
+import { LoadingStates } from "./turning-on";
 
 interface CanvasFrameProps {
   /** Frame title */
@@ -323,6 +325,31 @@ export const CanvasFrame = observer(
               enableCommunication={true}
               onElementSelected={onElementSelected}
               onElementHovered={onElementHovered}
+              // Turning on stuff
+              showTurningOn={isLoading && (
+                editorEngine.projects.isSyncing || 
+                editorEngine.sandbox.isRestarting || 
+                editorEngine.sandbox.isCreating ||
+                editorEngine.sandbox.currentSandbox?.status === "creating"
+              )}
+              turningOnTitle={
+                editorEngine.sandbox.isRestarting 
+                  ? LoadingStates.RESTARTING.title
+                  : editorEngine.projects.isSyncing 
+                    ? LoadingStates.SYNCING.title
+                    : (editorEngine.sandbox.isCreating || editorEngine.sandbox.currentSandbox?.status === "creating")
+                      ? LoadingStates.SANDBOX_CREATION.title
+                      : undefined
+              }
+              turningOnSubtitle={
+                editorEngine.sandbox.isRestarting 
+                  ? LoadingStates.RESTARTING.subtitle
+                  : editorEngine.projects.isSyncing 
+                    ? LoadingStates.SYNCING.subtitle
+                    : (editorEngine.sandbox.isCreating || editorEngine.sandbox.currentSandbox?.status === "creating")
+                      ? LoadingStates.SANDBOX_CREATION.subtitle
+                      : undefined
+              }
             />
 
             {/* Canvas interaction overlay */}

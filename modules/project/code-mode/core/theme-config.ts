@@ -9,10 +9,10 @@
 export const LIGHT_THEME_COLORS = {
   // Editor UI
   editor: {
-    background: "rgb(var(--bk-50))", // Light background
+    background: "rgb(var(--bk-60))", // Light background
     foreground: "rgb(var(--fg-30))", // Dark text
     cursor: "rgb(var(--ac-01))", // Accent cursor
-    selection: "rgba(59, 130, 246, 0.2)", // Blue selection for light theme
+    selection: "rgba(59, 130, 246, 0.1)", // Blue selection for light theme
     selectionMatch: "rgba(59, 130, 246, 0.2)", // Lighter blue for matches
     activeLine: "transparent",
     activeLineBorder: "rgb(var(--bd-50))",
@@ -50,10 +50,10 @@ export const LIGHT_THEME_COLORS = {
 export const DARK_THEME_COLORS = {
   // Editor UI
   editor: {
-    background: "rgb(var(--bk-50))", // Dark background
+    background: "rgb(var(--bk-60))", // Dark background
     foreground: "rgb(var(--fg-30))", // Light text
     cursor: "rgb(var(--ac-01))", // Accent cursor
-    selection: "rgba(59, 130, 246, 0.3)", // Blue selection for dark theme (more visible)
+    selection: "rgba(59, 130, 246, 0.1)", // Blue selection for dark theme (more visible)
     selectionMatch: "rgba(59, 130, 246, 0.2)", // Blue matches for dark theme
     activeLine: "transparent",
     activeLineBorder: "rgb(var(--bd-50))",

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Header from "../../modules/projects/header";
-import { ContextMenu, useContextMenu } from "@/components/common/menu";
+import { ContextMenu, useContextMenu } from "@/components/menu";
 
 interface Project {
   id: string;

@@ -7,6 +7,9 @@ import { ResizablePanel } from "@/components/resizable";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { ViewMode } from "@/lib/stores/editor/state";
 import { CodePanel, SplitView } from "@/modules/project/code-mode";
+// Import the reusable turning-on widget
+import TurningOn, { LoadingStates } from "@/modules/project/widgets/turning-on";
+
 // Project type matching the V1 API
 interface Project {
   id: string;
@@ -37,14 +40,36 @@ export const ViewModeComponent = observer(({ project }: ViewModeProps) => {
     case ViewMode.ONLY_CODE:
       return (
         <div className="flex-1 relative overflow-hidden min-h-0 min-w-0 bg-bk-60">
-          <CodePanel projectId={project.id} className="h-full" />
+          <CodePanel projectId={project.id} />
         </div>
       );
 
     case ViewMode.ONLY_PREVIEW:
       return (
         <div className="flex-1 relative overflow-hidden min-h-0 min-w-0 bg-bk-60">
-          {engine.sandbox.previewUrl || project.previewUrl ? (
+          {/* Show TurningOn widget for syncing, restarting, or creating states */}
+          {(engine.projects.isSyncing || 
+            engine.sandbox.isRestarting || 
+            engine.sandbox.isCreating || 
+            engine.sandbox.currentSandbox?.status === "creating") ? (
+            
+            <TurningOn 
+              title={
+                engine.sandbox.isRestarting 
+                  ? LoadingStates.RESTARTING.title
+                  : engine.projects.isSyncing 
+                    ? LoadingStates.SYNCING.title
+                    : LoadingStates.SANDBOX_CREATION.title
+              }
+              subtitle={
+                engine.sandbox.isRestarting 
+                  ? LoadingStates.RESTARTING.subtitle
+                  : engine.projects.isSyncing 
+                    ? LoadingStates.SYNCING.subtitle
+                    : LoadingStates.SANDBOX_CREATION.subtitle
+              }
+            />
+          ) : (engine.sandbox.previewUrl || project.previewUrl) ? (
             <iframe
               src={engine.sandbox.previewUrl || project.previewUrl || ""}
               className="w-full h-full border-0"
@@ -55,9 +80,7 @@ export const ViewModeComponent = observer(({ project }: ViewModeProps) => {
             <div className="h-full flex items-center justify-center text-center">
               <div>
                 <div className="text-[11px] text-fg-60">
-                  {engine.sandbox.isCreating
-                    ? "Setting up sandbox..."
-                    : "Start chatting to create your app and see the preview here"}
+                  Start chatting to create your app and see the preview here
                 </div>
               </div>
             </div>

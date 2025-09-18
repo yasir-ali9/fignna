@@ -8,53 +8,20 @@ import { TabBar } from "../editor-tabs/tab-bar";
 import { CodeMirrorEditor } from "../editor-core/codemirror-editor";
 import { ResizablePanel } from "@/components/resizable";
 import { Terminal } from "@/modules/project/common/terminal/terminal";
-
-/**
- * Terminal icon component
- */
-const TerminalIcon = ({ size = 16 }: { size?: number }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width={size}
-    height={size}
-    viewBox="0 0 256 256"
-    fill="currentColor"
-  >
-    <g>
-      <path d="M216 80v112H40V64h160a16 16 0 0 1 16 16" opacity=".2" />
-      <path d="m117.31 134l-72 64a8 8 0 1 1-10.63-12L100 128L34.69 70a8 8 0 1 1 10.63-12l72 64a8 8 0 0 1 0 12ZM216 184h-96a8 8 0 0 0 0 16h96a8 8 0 0 0 0-16" />
-    </g>
-  </svg>
-);
-
-/**
- * Chevron up icon for close button
- */
-const ChevronUpIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="12"
-    height="12"
-    viewBox="0 0 256 256"
-    fill="currentColor"
-  >
-    <path d="M213.66 165.66a8 8 0 0 1-11.32 0L128 91.31 53.66 165.66a8 8 0 0 1-11.32-11.32l80-80a8 8 0 0 1 11.32 0l80 80a8 8 0 0 1 0 11.32Z" />
-  </svg>
-);
+import { SplitView } from "./split-view";
+import { TerminalIcon, ChevronDown } from "lucide-react";
 
 interface CodePanelProps {
   projectId: string;
-  className?: string;
 }
 
 /**
- * CodePanel - Complete code editor experience
- * Combines file explorer, tabs, and editor with database integration
+ * Main code panel component that handles both normal and split view modes
  */
-export const CodePanel = observer(
-  ({ projectId, className = "" }: CodePanelProps) => {
+export const CodePanel = observer(({ projectId }: CodePanelProps) => {
     const engine = useEditorEngine();
     const [isTerminalOpen, setIsTerminalOpen] = React.useState(false);
+    const [isSplitViewOpen, setIsSplitViewOpen] = React.useState(false);
 
     // Initialize files manager with project ID only
     useEffect(() => {
@@ -62,7 +29,7 @@ export const CodePanel = observer(
     }, [projectId, engine.files]);
 
     return (
-      <div className={`h-full flex bg-bk-40 ${className}`}>
+      <div className={`h-full flex bg-bk-60 `}>
         {/* File Explorer */}
         <ResizablePanel
           defaultWidth={280}
@@ -77,21 +44,35 @@ export const CodePanel = observer(
                 projectId={projectId}
                 onTerminalToggle={() => setIsTerminalOpen(!isTerminalOpen)}
                 showTerminalButton={true}
+                isTerminalActive={isTerminalOpen}
+                onSplitViewToggle={() => setIsSplitViewOpen(!isSplitViewOpen)}
+                showSplitViewButton={true}
+                isSplitViewActive={isSplitViewOpen}
               />
             </div>
           </div>
         </ResizablePanel>
 
         {/* Editor Area */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Tab Bar */}
-          <TabBar />
+        {isSplitViewOpen ? (
+          <div className="flex-1 min-w-0">
+            <SplitView 
+              projectId={projectId} 
+              isTerminalOpen={isTerminalOpen}
+              onTerminalClose={() => setIsTerminalOpen(false)}
+            />
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col min-w-0 relative">
+            {/* Tab Bar */}
+            <TabBar />
 
-          {/* Editor Container */}
-          <div className="flex-1 relative">
-            <CodeMirrorEditor />
+            {/* Editor Container */}
+            <div className="flex-1 relative">
+              <CodeMirrorEditor />
+            </div>
 
-            {/* Terminal Panel - Absolute positioned */}
+            {/* Terminal Panel - Available in normal view */}
             {isTerminalOpen && (
               <div className="absolute bottom-0 left-0 right-0 h-64 bg-bk-70 border-t border-bd-50 z-10">
                 {/* Terminal Header - matching edit mode design */}
@@ -107,7 +88,7 @@ export const CodePanel = observer(
                     className="p-1 text-fg-60 hover:text-fg-40 transition-colors"
                     title="Close Terminal"
                   >
-                    <ChevronUpIcon />
+                    <ChevronDown size={12} />
                   </button>
                 </div>
 
@@ -118,7 +99,7 @@ export const CodePanel = observer(
               </div>
             )}
           </div>
-        </div>
+        )}
       </div>
     );
   }

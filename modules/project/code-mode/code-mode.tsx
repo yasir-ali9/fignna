@@ -27,7 +27,9 @@ interface CodeModeProps {
 export const CodeMode = observer(({ project }: CodeModeProps) => {
   return (
     <div className="flex-1 relative overflow-hidden min-h-0 min-w-0 bg-bk-60">
-      <CodePanel projectId={project.id} className="h-full" />
+      <div className="h-full">
+        <CodePanel projectId={project.id} />
+      </div>
     </div>
   );
 });
