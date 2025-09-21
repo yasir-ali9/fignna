@@ -1,7 +1,4 @@
-/**
- * V1 Project Chat API Route
- * Handles chat listing (GET) and creation (POST) for a specific project
- */
+// Handles chat listing (GET) and creation (POST) for a specific project
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -23,7 +20,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     projectId = resolvedParams.id;
     console.log(
-      `[V1 Project Chat API] Fetching chats for project ${projectId}...`
+      `Chat API - Fetching chats for project ${projectId}...`
     );
 
     // Get current session
@@ -32,7 +29,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Project Chat API] No session found");
+      console.log("Chat API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -47,7 +44,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id: projectId });
     if (!paramResult.success) {
       console.log(
-        "[V1 Project Chat API] Invalid project ID:",
+        "Chat API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -70,7 +67,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!paginationResult.success) {
       console.log(
-        "[V1 Project Chat API] Invalid pagination parameters:",
+        "Chat API - Invalid pagination parameters:",
         paginationResult.error
       );
       return NextResponse.json(
@@ -94,7 +91,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log(
-      `[V1 Project Chat API] Found ${chats.length} chats for project ${projectId}`
+      `Chat API - Found ${chats.length} chats for project ${projectId}`
     );
 
     return NextResponse.json({
@@ -111,7 +108,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Project Chat API] Error fetching chats for project ${projectId}:`,
+      `Chat API - Error fetching chats for project ${projectId}:`,
       error
     );
 
@@ -146,7 +143,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     projectId = resolvedParams.id;
     console.log(
-      `[V1 Project Chat API] Creating new chat for project ${projectId}...`
+      `Chat API - Creating new chat for project ${projectId}...`
     );
 
     // Get current session
@@ -155,7 +152,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Project Chat API] No session found");
+      console.log("Chat API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -170,7 +167,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id: projectId });
     if (!paramResult.success) {
       console.log(
-        "[V1 Project Chat API] Invalid project ID:",
+        "Chat API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -195,7 +192,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!validationResult.success) {
       console.log(
-        "[V1 Project Chat API] Invalid chat data:",
+        "Chat API - Invalid chat data:",
         validationResult.error
       );
       return NextResponse.json(
@@ -217,7 +214,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log(
-      `[V1 Project Chat API] Created chat ${chat.id} for project ${projectId}`
+      `Chat API - Created chat ${chat.id} for project ${projectId}`
     );
 
     return NextResponse.json(
@@ -231,7 +228,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
   } catch (error) {
     console.error(
-      `[V1 Project Chat API] Error creating chat for project ${projectId}:`,
+      `Chat API - Error creating chat for project ${projectId}:`,
       error
     );
 

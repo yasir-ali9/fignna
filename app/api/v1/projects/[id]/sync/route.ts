@@ -1,7 +1,4 @@
-/**
- * V1 Project Sync API Route
- * Synchronizes project files from database to E2B sandbox for live preview
- */
+// Synchronizes project files from database to E2B sandbox for live preview
 
 import { NextRequest, NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
@@ -25,20 +22,20 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
   try {
     // Debug params
-    console.log("[V1 Project Sync API] Raw params:", params);
-    console.log("[V1 Project Sync API] Params type:", typeof params);
-    console.log("[V1 Project Sync API] Is Promise:", params instanceof Promise);
+    console.log("Sync API - Raw params:", params);
+    console.log("Sync API - Params type:", typeof params);
+    console.log("Sync API - Is Promise:", params instanceof Promise);
 
     // Handle both sync and async params
     const resolvedParams = params instanceof Promise ? await params : params;
-    console.log("[V1 Project Sync API] Resolved params:", resolvedParams);
+    console.log("Sync API - Resolved params:", resolvedParams);
     console.log(
-      "[V1 Project Sync API] Resolved params keys:",
+      "Sync API - Resolved params keys:",
       Object.keys(resolvedParams || {})
     );
 
     id = resolvedParams?.id;
-    console.log(`[V1 Project Sync API] Extracted ID: ${id}`);
+    console.log(`Sync API - Extracted ID: ${id}`);
 
     // Get current session
     const session = await auth.api.getSession({
@@ -46,7 +43,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Project Sync API] No session found");
+      console.log("Sync API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -61,7 +58,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
       console.log(
-        "[V1 Project Sync API] Invalid project ID:",
+        "Sync API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -77,19 +74,19 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Get project files from database
     console.log(
-      `[V1 Project Sync API] Fetching project files from database for project ${id} and user ${session.user.id}...`
+      `Sync API - Fetching project files from database for project ${id} and user ${session.user.id}...`
     );
 
     let projectFiles;
     try {
       projectFiles = await projectQueries.getFiles(id, session.user.id);
       console.log(
-        `[V1 Project Sync API] Project files retrieved:`,
+        `Sync API - Project files retrieved:`,
         projectFiles
       );
     } catch (error) {
       console.error(
-        `[V1 Project Sync API] Error fetching project files:`,
+        `Sync API - Error fetching project files:`,
         error
       );
       return NextResponse.json(
@@ -105,7 +102,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!projectFiles.files || Object.keys(projectFiles.files).length === 0) {
       console.log(
-        `[V1 Project Sync API] No files found in project ${id}. Cannot sync empty project.`
+        `Sync API - No files found in project ${id}. Cannot sync empty project.`
       );
 
       return NextResponse.json(
@@ -121,24 +118,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     console.log(
-      `[V1 Project Sync API] Found ${
+      `Sync API - Found ${
         Object.keys(projectFiles.files).length
       } files to sync`
     );
 
     // Log the files being synced for debugging
     console.log(
-      "[V1 Project Sync API] Files to sync:",
+      "Sync API - Files to sync:",
       Object.keys(projectFiles.files)
     );
 
     // Kill existing sandbox if any
     if (global.activeSandbox) {
-      console.log("[V1 Project Sync API] Killing existing sandbox...");
+      console.log("Sync API - Killing existing sandbox...");
       try {
         await global.activeSandbox.kill();
       } catch {
-        console.error("[V1 Project Sync API] Failed to close existing sandbox");
+        console.error("Sync API - Failed to close existing sandbox");
       }
       global.activeSandbox = null;
     }
@@ -152,7 +149,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Create base E2B sandbox with 30 minute timeout
     console.log(
-      "[V1 Project Sync API] Creating base E2B sandbox with 30 minute timeout..."
+      "Sync API - Creating base E2B sandbox with 30 minute timeout..."
     );
     sandbox = await Sandbox.create({
       apiKey: process.env.E2B_API_KEY,
@@ -166,11 +163,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       sandbox as Sandbox & { getHost: (port: number) => string }
     ).getHost(5173); // Vite default port
 
-    console.log(`[V1 Project Sync API] Sandbox created: ${sandboxId}`);
-    console.log(`[V1 Project Sync API] Sandbox host: ${host}`);
+    console.log(`Sync API - Sandbox created: ${sandboxId}`);
+    console.log(`Sync API - Sandbox host: ${host}`);
 
     // Create Python script to write all project files
-    console.log("[V1 Project Sync API] Writing project files to sandbox...");
+    console.log("Sync API - Writing project files to sandbox...");
 
     // Escape file contents for Python string literals
     const escapeForPython = (content: string): string => {
@@ -222,7 +219,7 @@ print(f'✓ Successfully wrote {len(os.listdir('/home/user/app'))} files to sand
 
     // Ensure Vite config has correct E2B settings (only if needed)
     console.log(
-      "[V1 Project Sync API] Checking Vite config for E2B compatibility..."
+      "Sync API - Checking Vite config for E2B compatibility..."
     );
     await sandbox.runCode(`
 import os
@@ -284,7 +281,7 @@ export default defineConfig({
 
     // Install dependencies if package.json exists
     if (projectFiles.files["package.json"]) {
-      console.log("[V1 Project Sync API] Installing dependencies...");
+      console.log("Sync API - Installing dependencies...");
       await sandbox.runCode(`
 import subprocess
 import sys
@@ -309,7 +306,7 @@ else:
     }
 
     // Start dev server
-    console.log("[V1 Project Sync API] Starting dev server...");
+    console.log("Sync API - Starting dev server...");
     await sandbox.runCode(`
 import subprocess
 import os
@@ -361,11 +358,11 @@ print(f'✓ Dev server started with PID: {process.pid}')
 print('Waiting for server to be ready...')
 
 # Log the command that was used to start the server
-print(f'📋 Dev server command: {" ".join(dev_command)}')
+print(f'Dev server command: {" ".join(dev_command)}')
 
 # Verify Vite config is being used
 if 'vite' in " ".join(dev_command):
-    print('📋 Using Vite with E2B-compatible allowedHosts configuration')
+    print('Using Vite with E2B-compatible allowedHosts configuration')
 `);
 
     // Wait for dev server to be ready
@@ -387,7 +384,7 @@ if 'vite' in " ".join(dev_command):
     });
 
     console.log(
-      `[V1 Project Sync API] Project synced successfully. Preview URL: ${previewUrl}`
+      `Sync API - Project synced successfully. Preview URL: ${previewUrl}`
     );
 
     return NextResponse.json({
@@ -403,7 +400,7 @@ if 'vite' in " ".join(dev_command):
       version: "v1",
     });
   } catch (error) {
-    console.error(`[V1 Project Sync API] Error syncing project ${id}:`, error);
+    console.error(`Sync API - Error syncing project ${id}:`, error);
 
     // Clean up on error
     if (sandbox) {
@@ -435,7 +432,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     id = resolvedParams?.id;
 
     console.log(
-      `[V1 Project Sync API] Getting sync status for project ${id}...`
+      `Sync API - Getting sync status for project ${id}...`
     );
 
     // Get current session
@@ -492,7 +489,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Project Sync API] Error getting sync status for project ${id}:`,
+      `Sync API - Error getting sync status for project ${id}:`,
       error
     );
 

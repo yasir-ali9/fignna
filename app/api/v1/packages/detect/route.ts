@@ -1,24 +1,6 @@
-/**
- * V1 Package Detection and Installation API Route
- *
- * Automatically detects missing packages from import statements in generated code files
- * and installs them. This route is used by the chat-based code generation flow to
- * ensure all required dependencies are installed after code generation.
- *
- * Usage:
- * - Chat flow: Code Apply API calls this route with generated files
- * - Direct API calls: POST /api/v1/packages/detect with { files: { "path": "content" } }
- * - Streaming: POST /api/v1/packages/detect with { files: {...}, streaming: true }
- *
- * Features:
- * - Smart import detection from JS/TS/JSX/TSX files
- * - Scoped package handling (@org/package)
- * - Built-in module filtering (react, next, node modules)
- * - Existing package detection via package.json
- * - Automatic dev server restart via /api/v1/sandbox/restart
- * - Non-blocking installation (continues even if fails)
- * - Streaming progress updates for chat UI
- */
+// Automatically detects missing packages from import statements in generated code files
+// and installs them. This route is used by the chat-based code generation flow to
+// ensure all required dependencies are installed after code generation.
 
 import { NextRequest, NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
@@ -86,7 +68,7 @@ export async function POST(request: NextRequest) {
     // Non-streaming response (existing behavior)
     return await processPackageDetectionSync(files, request);
   } catch (error) {
-    console.error("[detect-and-install-packages] Error:", error);
+    console.error("Detect & Install Packages API - Error:", error);
     return NextResponse.json(
       {
         success: false,
@@ -110,7 +92,7 @@ async function processPackageDetection(
   });
 
   console.log(
-    "[detect-and-install-packages] Processing files:",
+    "Detect & Install Packages API - Processing files:",
     Object.keys(files)
   );
 
@@ -139,7 +121,7 @@ async function processPackageDetection(
   }
 
   console.log(
-    "[detect-and-install-packages] Found imports:",
+    "Detect & Install Packages API - Found imports:",
     Array.from(imports)
   );
 
@@ -149,7 +131,7 @@ async function processPackageDetection(
   );
   if (heroiconImports.length > 0) {
     console.log(
-      "[detect-and-install-packages] Heroicon imports:",
+      "Detect & Install Packages API - Heroicon imports:",
       heroiconImports
     );
   }
@@ -197,7 +179,7 @@ async function processPackageDetection(
   const uniquePackages = [...new Set(packageNames)];
 
   console.log(
-    "[detect-and-install-packages] Packages to install:",
+    "Detect & Install Packages API - Packages to install:",
     uniquePackages
   );
 
@@ -253,7 +235,7 @@ except Exception as e:
         allDeps = JSON.parse(depsJson) as Record<string, string>;
       } catch (parseError) {
         console.warn(
-          "[detect-and-install-packages] Failed to parse package.json:",
+          "Detect & Install Packages API - Failed to parse package.json:",
           parseError
         );
       }
@@ -273,14 +255,14 @@ except Exception as e:
     }
   } catch (error) {
     console.error(
-      "[detect-and-install-packages] Error checking packages:",
+      "Detect & Install Packages API - Error checking packages:",
       error
     );
     // If we can't check, assume all packages are missing
     missing.push(...uniquePackages);
   }
 
-  console.log("[detect-and-install-packages] Package status:", {
+  console.log("Detect & Install Packages API - Package status:", {
     installed,
     missing,
   });
@@ -297,7 +279,7 @@ except Exception as e:
   }
 
   // Install missing packages
-  console.log("[detect-and-install-packages] Installing packages:", missing);
+  console.log("Detect & Install Packages API - Installing packages:", missing);
 
   await sendProgress({
     type: "package-progress",
@@ -342,9 +324,9 @@ else:
   const output = installResult.logs?.stdout?.join("") || "";
   const stderr = installResult.logs?.stderr?.join("") || "";
 
-  console.log("[detect-and-install-packages] Install output:", output);
+  console.log("Detect & Install Packages API - Install output:", output);
   if (stderr) {
-    console.log("[detect-and-install-packages] Install stderr:", stderr);
+    console.log("Detect & Install Packages API - Install stderr:", stderr);
   }
 
   // Verify installation success
@@ -368,7 +350,7 @@ else:
     });
 
     console.log(
-      "[detect-and-install-packages] Packages were installed, syncing files and restarting..."
+      "Detect & Install Packages API - Packages were installed, syncing files and restarting..."
     );
 
     try {
@@ -382,7 +364,7 @@ else:
 
       if (projectId) {
         console.log(
-          "[detect-and-install-packages] Auto-saving files to database..."
+          "Detect & Install Packages API - Auto-saving files to database..."
         );
 
         const saveResponse = await fetch(
@@ -395,16 +377,16 @@ else:
 
         if (saveResponse.ok) {
           console.log(
-            "[detect-and-install-packages] ✓ Files saved to database successfully"
+            "Detect & Install Packages API - ✓ Files saved to database successfully"
           );
         } else {
           console.warn(
-            "[detect-and-install-packages] ⚠ File save failed, but continuing..."
+            "Detect & Install Packages API - ⚠ File save failed, but continuing..."
           );
         }
       } else {
         console.warn(
-          "[detect-and-install-packages] ⚠ Could not determine project ID for auto-save"
+          "Detect & Install Packages API - ⚠ Could not determine project ID for auto-save"
         );
       }
 
@@ -419,16 +401,16 @@ else:
 
       if (restartResponse.ok) {
         console.log(
-          "[detect-and-install-packages] ✓ Vite server restarted successfully"
+          "Detect & Install Packages API - ✓ Vite server restarted successfully"
         );
       } else {
         console.warn(
-          "[detect-and-install-packages] ⚠ Restart API call failed, but continuing..."
+          "Detect & Install Packages API - ⚠ Restart API call failed, but continuing..."
         );
       }
     } catch (error) {
       console.warn(
-        "[detect-and-install-packages] ⚠ Failed to sync files or restart:",
+        "Detect & Install Packages API - ⚠ Failed to sync files or restart:",
         error
       );
       // Don't fail the entire operation for sync/restart issues
@@ -451,7 +433,7 @@ async function processPackageDetectionSync(
   request: NextRequest
 ) {
   console.log(
-    "[detect-and-install-packages] Processing files:",
+    "Detect & Install Packages API - Processing files:",
     Object.keys(files)
   );
 
@@ -480,7 +462,7 @@ async function processPackageDetectionSync(
   }
 
   console.log(
-    "[detect-and-install-packages] Found imports:",
+    "Detect & Install Packages API - Found imports:",
     Array.from(imports)
   );
 
@@ -527,7 +509,7 @@ async function processPackageDetectionSync(
   const uniquePackages = [...new Set(packageNames)];
 
   console.log(
-    "[detect-and-install-packages] Packages to install:",
+    "Detect & Install Packages API - Packages to install:",
     uniquePackages
   );
 
@@ -581,7 +563,7 @@ except Exception as e:
         allDeps = JSON.parse(depsJson) as Record<string, string>;
       } catch (parseError) {
         console.warn(
-          "[detect-and-install-packages] Failed to parse package.json:",
+          "Detect & Install Packages API - Failed to parse package.json:",
           parseError
         );
       }
@@ -601,14 +583,14 @@ except Exception as e:
     }
   } catch (error) {
     console.error(
-      "[detect-and-install-packages] Error checking packages:",
+      "Detect & Install Packages API - Error checking packages:",
       error
     );
     // If we can't check, assume all packages are missing
     missing.push(...uniquePackages);
   }
 
-  console.log("[detect-and-install-packages] Package status:", {
+  console.log("Detect & Install Packages API - Package status:", {
     installed,
     missing,
   });
@@ -623,7 +605,7 @@ except Exception as e:
   }
 
   // Install missing packages
-  console.log("[detect-and-install-packages] Installing packages:", missing);
+  console.log("Detect & Install Packages API - Installing packages:", missing);
 
   // Sanitize package names to prevent command injection
   const sanitizedPackages = missing.map((pkg) => {
@@ -661,9 +643,9 @@ else:
   const output = installResult.logs?.stdout?.join("") || "";
   const stderr = installResult.logs?.stderr?.join("") || "";
 
-  console.log("[detect-and-install-packages] Install output:", output);
+  console.log("Detect & Install Packages API - Install output:", output);
   if (stderr) {
-    console.log("[detect-and-install-packages] Install stderr:", stderr);
+    console.log("Detect & Install Packages API - Install stderr:", stderr);
   }
 
   // Verify installation success
@@ -681,7 +663,7 @@ else:
   // Auto-save updated package.json to database and restart server
   if (finalInstalled.length > 0) {
     console.log(
-      "[detect-and-install-packages] Packages were installed, syncing files and restarting..."
+      "Detect & Install Packages API - Packages were installed, syncing files and restarting..."
     );
 
     try {
@@ -695,7 +677,7 @@ else:
 
       if (projectId) {
         console.log(
-          "[detect-and-install-packages] Auto-saving files to database..."
+          "Detect & Install Packages API - Auto-saving files to database..."
         );
 
         const saveResponse = await fetch(
@@ -708,16 +690,16 @@ else:
 
         if (saveResponse.ok) {
           console.log(
-            "[detect-and-install-packages] ✓ Files saved to database successfully"
+            "Detect & Install Packages API - ✓ Files saved to database successfully"
           );
         } else {
           console.warn(
-            "[detect-and-install-packages] ⚠ File save failed, but continuing..."
+            "Detect & Install Packages API - ⚠ File save failed, but continuing..."
           );
         }
       } else {
         console.warn(
-          "[detect-and-install-packages] ⚠ Could not determine project ID for auto-save"
+          "Detect & Install Packages API - ⚠ Could not determine project ID for auto-save"
         );
       }
 
@@ -732,16 +714,16 @@ else:
 
       if (restartResponse.ok) {
         console.log(
-          "[detect-and-install-packages] ✓ Vite server restarted successfully"
+          "Detect & Install Packages API - ✓ Vite server restarted successfully"
         );
       } else {
         console.warn(
-          "[detect-and-install-packages] ⚠ Restart API call failed, but continuing..."
+          "Detect & Install Packages API - ⚠ Restart API call failed, but continuing..."
         );
       }
     } catch (error) {
       console.warn(
-        "[detect-and-install-packages] ⚠ Failed to sync files or restart:",
+        "Detect & Install Packages API - ⚠ Failed to sync files or restart:",
         error
       );
       // Don't fail the entire operation for sync/restart issues

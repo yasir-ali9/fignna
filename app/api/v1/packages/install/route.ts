@@ -1,21 +1,6 @@
-/**
- * V1 Package Installation API Route
- *
- * Handles streaming package installation for terminal commands and direct API calls.
- * This route provides real-time progress updates via Server-Sent Events (SSE) and
- * integrates with the existing sandbox restart API for proper dev server management.
- *
- * Usage:
- * - Terminal commands: `npm install <package>` calls this route
- * - Direct API calls: POST /api/v1/packages/install with { packages: ["package-name"] }
- *
- * Features:
- * - Streaming progress updates with SSE
- * - Package deduplication and validation
- * - Existing package detection via package.json
- * - Automatic dev server restart via /api/v1/sandbox/restart
- * - Error handling and recovery
- */
+// Handles streaming package installation for terminal commands and direct API calls.
+// This route provides real-time progress updates via Server-Sent Events (SSE) and
+// integrates with the existing sandbox restart API for proper dev server management.
 
 import { NextRequest, NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
@@ -57,12 +42,12 @@ export async function POST(request: NextRequest) {
     // Log if duplicates were found
     if (packages.length !== validPackages.length) {
       console.log(
-        `[install-packages] Cleaned packages: removed ${
+        `Install Packages API - Cleaned packages: removed ${
           packages.length - validPackages.length
         } invalid/duplicate entries`
       );
-      console.log(`[install-packages] Original:`, packages);
-      console.log(`[install-packages] Cleaned:`, validPackages);
+      console.log(`Install Packages API - Original:`, packages);
+      console.log(`Install Packages API - Cleaned:`, validPackages);
     }
 
     // Check if there's an active sandbox
@@ -76,7 +61,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[install-packages] Installing packages:", validPackages);
+    console.log("Install Packages API - Installing packages:", validPackages);
 
     // Create a response stream for real-time updates
     const encoder = new TextEncoder();
@@ -123,7 +108,7 @@ except Exception as e:
         } catch (killError) {
           // It's OK if no process is found
           console.debug(
-            "[install-packages] No existing dev server found:",
+            "Install Packages API - No existing dev server found:",
             killError
           );
         }
@@ -193,7 +178,7 @@ except Exception as e:
           }
         } catch (error) {
           console.error(
-            "[install-packages] Error checking existing packages:",
+            "Install Packages API - Error checking existing packages:",
             error
           );
           // If we can't check, just try to install all packages
@@ -397,7 +382,7 @@ else:
       },
     });
   } catch (error) {
-    console.error("[install-packages] Error:", error);
+    console.error("Install Packages API - Error:", error);
     return NextResponse.json(
       {
         success: false,

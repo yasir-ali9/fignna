@@ -1,7 +1,4 @@
-/**
- * V1 Project Files Update API Route
- * Updates only specific files without affecting other files in the project
- */
+// Updates only specific files without affecting other files in the project
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -32,7 +29,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     id = resolvedParams?.id;
 
     console.log(
-      `[V1 Files Update API] Updating specific files in project ${id}...`
+      `Files Update API - Updating specific files in project ${id}...`
     );
 
     // Get current session
@@ -41,7 +38,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Files Update API] No session found");
+      console.log("Files Update API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -56,7 +53,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
       console.log(
-        "[V1 Files Update API] Invalid project ID:",
+        "Files Update API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -77,7 +74,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     const validationResult = fileUpdatesSchema.safeParse(body);
     if (!validationResult.success) {
       console.log(
-        "[V1 Files Update API] Invalid update data:",
+        "Files Update API - Invalid update data:",
         validationResult.error
       );
       return NextResponse.json(
@@ -101,7 +98,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (emptyFiles.length > 0) {
       console.error(
-        `[V1 Files Update API] BLOCKED: Attempt to update files with empty content for project ${id}:`,
+        `Files Update API - BLOCKED: Attempt to update files with empty content for project ${id}:`,
         emptyFiles.map(([path]) => path)
       );
       return NextResponse.json(
@@ -127,7 +124,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     };
 
     console.log(
-      `[V1 Files Update API] Updating ${
+      `Files Update API - Updating ${
         Object.keys(filesToUpdate).length
       } files out of ${Object.keys(currentProject.files).length} total files`
     );
@@ -140,7 +137,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log(
-      `[V1 Files Update API] Successfully updated files in project ${id}`
+      `Files Update API - Successfully updated files in project ${id}`
     );
 
     return NextResponse.json({
@@ -159,7 +156,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Files Update API] Error updating files for project ${id}:`,
+      `Files Update API - Error updating files for project ${id}:`,
       error
     );
 

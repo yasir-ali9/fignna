@@ -1,7 +1,4 @@
-/**
- * V1 Project Download API Route
- * Creates a ZIP file of the project and returns it for download
- */
+// Creates a ZIP file of the project and returns it for download
 
 import { NextRequest, NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
@@ -25,7 +22,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     id = resolvedParams?.id;
 
-    console.log(`[V1 Project Download API] Creating ZIP for project ${id}...`);
+    console.log(`Download Project API - Creating ZIP for project ${id}...`);
 
     // Get current session
     const session = await auth.api.getSession({
@@ -33,7 +30,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Project Download API] No session found");
+      console.log("Download Project API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -48,7 +45,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
       console.log(
-        "[V1 Project Download API] Invalid project ID:",
+        "Download Project API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -78,7 +75,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Check if there's an active sandbox
     if (!global.activeSandbox) {
       console.log(
-        "[V1 Project Download API] No active sandbox, creating from database files..."
+        "Download Project API - No active sandbox, creating from database files..."
       );
 
       // If no sandbox, create ZIP from database files
@@ -101,7 +98,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Create ZIP file in sandbox
-    console.log("[V1 Project Download API] Creating ZIP from sandbox...");
+    console.log("Download Project API - Creating ZIP from sandbox...");
 
     // Create zip file excluding common build/cache directories
     const zipResult = await global.activeSandbox.runCode(`
@@ -192,7 +189,7 @@ except Exception as e:
     const fileName = `${sanitizedName}-project.zip`;
 
     console.log(
-      `[V1 Project Download API] ZIP created successfully for project ${id}`
+      `Download Project API - ZIP created successfully for project ${id}`
     );
 
     return NextResponse.json({
@@ -204,7 +201,7 @@ except Exception as e:
     });
   } catch (error) {
     console.error(
-      `[V1 Project Download API] Error creating ZIP for project ${id}:`,
+      `Download Project API - Error creating ZIP for project ${id}:`,
       error
     );
 

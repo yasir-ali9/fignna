@@ -1,7 +1,4 @@
-/**
- * V1 Chat Messages API Route
- * Handles message listing (GET) and creation (POST) for a specific chat
- */
+// Handles message listing (GET) and creation (POST) for a specific chat
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -25,7 +22,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     ({ id: projectId, chatId } = resolvedParams);
     console.log(
-      `[V1 Messages API] Fetching messages for chat ${chatId} in project ${projectId}...`
+      `Messages API - Fetching messages for chat ${chatId} in project ${projectId}...`
     );
 
     // Get current session
@@ -34,7 +31,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Messages API] No session found");
+      console.log("Messages API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -71,7 +68,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     if (!paginationResult.success) {
       console.log(
-        "[V1 Messages API] Invalid pagination parameters:",
+        "Messages API - Invalid pagination parameters:",
         paginationResult.error
       );
       return NextResponse.json(
@@ -96,7 +93,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log(
-      `[V1 Messages API] Found ${messages.length} messages for chat ${chatId}`
+      `Messages API - Found ${messages.length} messages for chat ${chatId}`
     );
 
     return NextResponse.json({
@@ -114,7 +111,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Messages API] Error fetching messages for chat ${chatId}:`,
+      `Messages API - Error fetching messages for chat ${chatId}:`,
       error
     );
 
@@ -150,7 +147,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     ({ id: projectId, chatId } = resolvedParams);
     console.log(
-      `[V1 Messages API] Creating new message for chat ${chatId} in project ${projectId}...`
+      `Messages API - Creating new message for chat ${chatId} in project ${projectId}...`
     );
 
     // Get current session
@@ -159,7 +156,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Messages API] No session found");
+      console.log("Messages API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -195,7 +192,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     if (!validationResult.success) {
       console.log(
-        "[V1 Messages API] Invalid message data:",
+        "Messages API - Invalid message data:",
         validationResult.error
       );
       return NextResponse.json(
@@ -217,7 +214,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log(
-      `[V1 Messages API] Created message ${message.id} for chat ${chatId}`
+      `Messages API - Created message ${message.id} for chat ${chatId}`
     );
 
     return NextResponse.json(
@@ -231,7 +228,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
   } catch (error) {
     console.error(
-      `[V1 Messages API] Error creating message for chat ${chatId}:`,
+      `Messages API - Error creating message for chat ${chatId}:`,
       error
     );
 

@@ -1,8 +1,5 @@
-/**
- * V1 Chat Generate API Route
- * AI-powered code generation with chat context from database
- * Automatically saves user message and AI response to chat
- */
+// AI-powered code generation with chat context from database
+// Automatically saves user message and AI response to chat
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -47,7 +44,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { id: projectId, chatId } = resolvedParams;
 
     console.log(
-      `[V1 Chat Generate API] Generating code for chat ${chatId} in project ${projectId}...`
+      `Chat Generate API -  Generating code for chat ${chatId} in project ${projectId}...`
     );
 
     // Get current session
@@ -56,7 +53,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Chat Generate API] No session found");
+      console.log("Chat Generate API -  No session found");
       return NextResponse.json(
         {
           success: false,
@@ -129,7 +126,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       }
     );
 
-    console.log(`[V1 Chat Generate API] Saved user message ${userMessage.id}`);
+    console.log(`Chat Generate API -  Saved user message ${userMessage.id}`);
 
     // Get conversation context from database
     const contextMessages = await messageQueries.getContextForAI(
@@ -139,7 +136,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log(
-      `[V1 Chat Generate API] Loaded ${contextMessages.length} context messages`
+      `Chat Generate API -  Loaded ${contextMessages.length} context messages`
     );
 
     // Create a stream for real-time updates
@@ -248,7 +245,7 @@ Remember: You are generating production-ready code that will be immediately exec
           aiModel = openai("gpt-4o-mini");
         }
 
-        console.log(`[V1 Chat Generate API] Using AI model: ${model}`);
+        console.log(`Chat Generate API -  Using AI model: ${model}`);
         await sendProgress({
           type: "status",
           message: `Using ${model} for code generation...`,
@@ -329,7 +326,7 @@ Remember: You are generating production-ready code that will be immediately exec
         });
 
         console.log(
-          `[V1 Chat Generate API] Updated assistant message ${assistantMessageId}`
+          `Chat Generate API -  Updated assistant message ${assistantMessageId}`
         );
 
         // Send completion
@@ -363,7 +360,7 @@ Remember: You are generating production-ready code that will be immediately exec
           if (saveResponse.ok) {
             const saveResult = await saveResponse.json();
             console.log(
-              `[V1 Chat Generate API] Auto-saved ${
+              `Chat Generate API -  Auto-saved ${
                 saveResult.data?.filesCount || 0
               } files to project`
             );
@@ -376,16 +373,16 @@ Remember: You are generating production-ready code that will be immediately exec
             });
           } else {
             console.warn(
-              "[V1 Chat Generate API] Failed to auto-save files:",
+              "Chat Generate API -  Failed to auto-save files:",
               await saveResponse.text()
             );
           }
         } catch (saveError) {
-          console.warn("[V1 Chat Generate API] Auto-save failed:", saveError);
+          console.warn("Chat Generate API -  Auto-save failed:", saveError);
           // Don't fail the entire generation if save fails
         }
       } catch (error) {
-        console.error("[V1 Chat Generate API] Error:", error);
+        console.error("Chat Generate API -  Error:", error);
 
         // Update assistant message with error status if it was created
         if (assistantMessageId) {
@@ -399,7 +396,7 @@ Remember: You are generating production-ready code that will be immediately exec
             });
           } catch (updateError) {
             console.error(
-              "[V1 Chat Generate API] Failed to update message with error:",
+              "Chat Generate API -  Failed to update message with error:",
               updateError
             );
           }
@@ -424,7 +421,7 @@ Remember: You are generating production-ready code that will be immediately exec
       },
     });
   } catch (error) {
-    console.error("[V1 Chat Generate API] Error:", error);
+    console.error("Chat Generate API -  Error:", error);
     return NextResponse.json(
       {
         success: false,

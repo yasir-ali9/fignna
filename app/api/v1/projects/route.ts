@@ -1,7 +1,4 @@
-/**
- * V1 Projects API Route
- * Handles project listing (GET) and creation (POST) operations
- */
+// Handles project listing (GET) and creation (POST) operations
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";

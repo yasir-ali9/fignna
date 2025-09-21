@@ -1,7 +1,4 @@
-/**
- * V1 Project Save API Route
- * Fetches files from active sandbox and saves them to project database
- */
+// Fetches files from active sandbox and saves them to project database
 
 import { NextRequest, NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
@@ -26,7 +23,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     id = resolvedParams?.id;
 
     console.log(
-      `[V1 Project Save API] Saving files from sandbox to project ${id}...`
+      `Save API - Saving files from sandbox to project ${id}...`
     );
 
     // Get current session
@@ -35,7 +32,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Project Save API] No session found");
+      console.log("Save API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -50,7 +47,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
       console.log(
-        "[V1 Project Save API] Invalid project ID:",
+        "Save API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -66,7 +63,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Check if there's an active sandbox
     if (!global.activeSandbox) {
-      console.log("[V1 Project Save API] No active sandbox found");
+      console.log("Save API - No active sandbox found");
       return NextResponse.json(
         {
           success: false,
@@ -79,7 +76,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Get all files from sandbox
-    console.log("[V1 Project Save API] Fetching files from sandbox...");
+    console.log("Save API - Fetching files from sandbox...");
     const result = await global.activeSandbox.runCode(`
 import os
 import json
@@ -128,14 +125,14 @@ print(json.dumps(files))
       sandboxFiles = JSON.parse(output);
     } catch (parseError) {
       console.error(
-        "[V1 Project Save API] Failed to parse sandbox files:",
+        "Save API - Failed to parse sandbox files:",
         parseError
       );
       throw new Error("Failed to parse sandbox files");
     }
 
     console.log(
-      `[V1 Project Save API] Found ${
+      `Save API - Found ${
         Object.keys(sandboxFiles).length
       } files in sandbox`
     );
@@ -148,7 +145,7 @@ print(json.dumps(files))
     );
 
     console.log(
-      `[V1 Project Save API] Saved ${
+      `Save API - Saved ${
         Object.keys(sandboxFiles).length
       } files to project ${id}`
     );
@@ -166,7 +163,7 @@ print(json.dumps(files))
     });
   } catch (error) {
     console.error(
-      `[V1 Project Save API] Error saving files from sandbox for project ${id}:`,
+      `Save API - Error saving files from sandbox for project ${id}:`,
       error
     );
 

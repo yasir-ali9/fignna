@@ -1,7 +1,4 @@
-/**
- * V1 Individual Chat API Route
- * Handles single chat operations: GET, PUT, DELETE
- */
+// Handles single chat operations: GET, PUT, DELETE
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -21,7 +18,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     const { id: projectId, chatId } = resolvedParams;
     console.log(
-      `[V1 Chat API] Fetching chat ${chatId} for project ${projectId}...`
+      `Single Chats API - Fetching chat ${chatId} for project ${projectId}...`
     );
 
     // Get current session
@@ -30,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Chat API] No session found");
+      console.log("Single Chats API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -74,7 +71,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     console.log(
-      `[V1 Chat API] Retrieved chat ${chat.id} for project ${projectId}`
+      `Single Chats API - Retrieved chat ${chat.id} for project ${projectId}`
     );
 
     return NextResponse.json({
@@ -84,7 +81,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       version: "v1",
     });
   } catch (error) {
-    console.error(`[V1 Chat API] Error fetching chat:`, error);
+    console.error(`Single Chats API - Error fetching chat:`, error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message.includes("not found")) {
@@ -115,7 +112,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     const { id: projectId, chatId } = resolvedParams;
     console.log(
-      `[V1 Chat API] Updating chat ${chatId} for project ${projectId}...`
+      `Single Chats API - Updating chat ${chatId} for project ${projectId}...`
     );
 
     // Get current session
@@ -124,7 +121,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Chat API] No session found");
+      console.log("Single Chats API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -158,7 +155,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Validate update data
     const validationResult = updateChatSchema.safeParse(body);
     if (!validationResult.success) {
-      console.log("[V1 Chat API] Invalid update data:", validationResult.error);
+      console.log("Single Chats API - Invalid update data:", validationResult.error);
       return NextResponse.json(
         {
           success: false,
@@ -178,7 +175,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     );
 
     console.log(
-      `[V1 Chat API] Updated chat ${chat.id} for project ${projectId}`
+      `Single Chats API - Updated chat ${chat.id} for project ${projectId}`
     );
 
     return NextResponse.json({
@@ -188,7 +185,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       version: "v1",
     });
   } catch (error) {
-    console.error(`[V1 Chat API] Error updating chat:`, error);
+    console.error(`Single Chats API - Error updating chat:`, error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message.includes("not found")) {
@@ -219,7 +216,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     const { id: projectId, chatId } = resolvedParams;
     console.log(
-      `[V1 Chat API] Deleting chat ${chatId} for project ${projectId}...`
+      `Single Chats API - Deleting chat ${chatId} for project ${projectId}...`
     );
 
     // Get current session
@@ -228,7 +225,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Chat API] No session found");
+      console.log("Single Chats API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -260,7 +257,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const deletedChat = await chatQueries.delete(chatId, session.user.id);
 
     console.log(
-      `[V1 Chat API] Deleted chat ${deletedChat.id} for project ${projectId}`
+      `Single Chats API - Deleted chat ${deletedChat.id} for project ${projectId}`
     );
 
     return NextResponse.json({
@@ -275,7 +272,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       version: "v1",
     });
   } catch (error) {
-    console.error(`[V1 Chat API] Error deleting chat:`, error);
+    console.error(`Single Chats API - Error deleting chat:`, error);
 
     // Handle specific error cases
     if (error instanceof Error && error.message.includes("not found")) {

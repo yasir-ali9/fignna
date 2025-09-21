@@ -1,7 +1,5 @@
-/**
- * V1 Project Files API Route
- * Handles project file operations: GET (retrieve files), PUT (update files)
- */
+// Handles project file operations: GET (retrieve files), PUT (update files)
+
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
@@ -21,7 +19,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
     const id = resolvedParams.id;
-    console.log(`[V1 Project Files API] Fetching files for project ${id}...`);
+    console.log(`Files API - Fetching files for project ${id}...`);
 
     // Get current session
     const session = await auth.api.getSession({
@@ -29,7 +27,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Project Files API] No session found");
+      console.log("Files API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -44,7 +42,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
       console.log(
-        "[V1 Project Files API] Invalid project ID:",
+        "Files API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -62,7 +60,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const projectFiles = await projectQueries.getFiles(id, session.user.id);
 
     console.log(
-      `[V1 Project Files API] Retrieved ${
+      `Files API - Retrieved ${
         Object.keys(projectFiles.files).length
       } files for project ${id}`
     );
@@ -80,7 +78,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Project Files API] Error fetching files for project ${id}:`,
+      `Files API - Error fetching files for project ${id}:`,
       error
     );
 
@@ -112,7 +110,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
     const resolvedParams = params instanceof Promise ? await params : params;
     const id = resolvedParams.id;
-    console.log(`[V1 Project Files API] Updating files for project ${id}...`);
+    console.log(`Files API - Updating files for project ${id}...`);
 
     // Get current session
     const session = await auth.api.getSession({
@@ -120,7 +118,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     });
 
     if (!session) {
-      console.log("[V1 Project Files API] No session found");
+      console.log("Files API - No session found");
       return NextResponse.json(
         {
           success: false,
@@ -135,7 +133,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
       console.log(
-        "[V1 Project Files API] Invalid project ID:",
+        "Files API - Invalid project ID:",
         paramResult.error
       );
       return NextResponse.json(
@@ -156,7 +154,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const validationResult = updateFilesSchema.safeParse(body);
     if (!validationResult.success) {
       console.log(
-        "[V1 Project Files API] Invalid files data:",
+        "Files API - Invalid files data:",
         validationResult.error
       );
       return NextResponse.json(
@@ -183,7 +181,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
     if (emptyFileCount > 3 || emptyFilePercentage > 50) {
       console.error(
-        `[V1 Project Files API] BLOCKED: Dangerous mass file overwrite detected for project ${id}:`,
+        `Files API - BLOCKED: Dangerous mass file overwrite detected for project ${id}:`,
         {
           totalFiles,
           emptyFiles: emptyFileCount,
@@ -223,19 +221,19 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
           changeType: "auto",
         });
         console.log(
-          `[V1 Project Files API] Created auto-version for project ${id}`
+          `Files API - Created auto-version for project ${id}`
         );
       }
     } catch (versionError) {
       // Don't fail the file update if version creation fails
       console.warn(
-        `[V1 Project Files API] Failed to create auto-version:`,
+        `Files API - Failed to create auto-version:`,
         versionError
       );
     }
 
     console.log(
-      `[V1 Project Files API] Updated ${
+      `Files API - Updated ${
         Object.keys(validationResult.data.files).length
       } files for project ${id}`
     );
@@ -253,7 +251,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     });
   } catch (error) {
     console.error(
-      `[V1 Project Files API] Error updating files for project ${id}:`,
+      `Files API - Error updating files for project ${id}:`,
       error
     );
 
