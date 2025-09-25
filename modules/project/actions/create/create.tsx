@@ -222,7 +222,7 @@ export function SandboxCreate({ projectId }: SandboxCreateProps) {
 
   if (currentStep === 'error') {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-bk-40">
+      <div className="h-screen w-full flex items-center justify-center bg-bk-60">
         <div className="text-center">
           {getStepIcon('error')}
           <div className="text-lg text-fg-30 mb-4 mt-4">

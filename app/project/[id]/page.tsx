@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { EditMode } from "@/modules/project/edit-mode";
@@ -11,7 +11,6 @@ import { EditorProvider } from "@/lib/providers/editor-provider";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { observer } from "mobx-react-lite";
 import {
-  SandboxStatusManager,
   type StatusCheckResult,
 } from "@/lib/services/sandbox-status-manager";
 import { SandboxCreate } from "@/modules/project/actions/create/create";
@@ -41,9 +40,7 @@ function ProjectPageInner() {
   const [project, setProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sandboxStatus, setSandboxStatus] = useState<StatusCheckResult | null>(
-    null
-  );
+
 
   const projectId = params.id as string;
   const action = searchParams.get("a"); // Get action parameter
@@ -52,15 +49,6 @@ function ProjectPageInner() {
   const isNewProject =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("source") === "new";
-
-  // Handle action-based routing for creation flow
-  if (action === "create") {
-    return (
-      <SandboxCreate 
-        projectId={projectId}
-      />
-    );
-  }
 
   // Set up status manager callbacks for existing projects only
   useEffect(() => {
@@ -71,7 +59,6 @@ function ProjectPageInner() {
 
     // Set up callbacks for existing projects
     statusManager.setStatusUpdateCallback((status: StatusCheckResult) => {
-      setSandboxStatus(status);
       console.log("[ProjectPage] Sandbox status updated:", status);
     });
 
@@ -88,8 +75,6 @@ function ProjectPageInner() {
       statusManager.setSyncRequiredCallback(async () => {});
     };
   }, [projectId, isNewProject, engine.projects, engine.statusManager]);
-
-
 
   // Load project data with different flows for new vs existing projects
   useEffect(() => {
@@ -184,15 +169,25 @@ function ProjectPageInner() {
       }
     };
 
-    if (projectId) {
+    // Only initialize project if we're not in create mode
+    if (projectId && action !== "create") {
       initializeProject();
     }
-  }, [projectId, isNewProject, engine.projects, engine.statusManager]);
+  }, [projectId, isNewProject, action, engine.projects, engine.statusManager, engine.sandbox, engine.state]);
+
+  // Handle action-based routing for creation flow
+  if (action === "create") {
+    return (
+      <SandboxCreate 
+        projectId={projectId}
+      />
+    );
+  }
 
   // Show loading state
   if (isLoading) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-bk-40">
+      <div className="h-screen w-full flex items-center justify-center bg-bk-60">
         <div className="text-center">
           <div className="animate-spin rounded-full h-6 w-6 border-2 border-fg-60 border-t-transparent mx-auto mb-3"></div>
           <div className="text-fg-30 text-sm">
@@ -206,7 +201,7 @@ function ProjectPageInner() {
   // Show error state
   if (error || !project) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-bk-40">
+      <div className="h-screen w-full flex items-center justify-center bg-bk-60">
         <div className="text-center">
           <div className="text-lg text-fg-30 mb-4">
             {error || "Project not found"}

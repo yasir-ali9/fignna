@@ -273,7 +273,7 @@ export const projectQueries = {
   async updateSandboxInfo(
     projectId: string,
     userId: string,
-    sandboxInfo: any // Using any to match the JSONB type
+    sandboxInfo: SandboxInfo
   ) {
     // Validate input parameters
     if (!projectId?.trim() || !userId?.trim()) {

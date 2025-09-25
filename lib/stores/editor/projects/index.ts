@@ -487,7 +487,7 @@ export class ProjectsManager {
   async checkSandboxStatus(): Promise<{
     success: boolean;
     status: "running" | "expired" | "not_found";
-    sandbox_info?: any;
+    sandbox_info?: SandboxInfo;
     action_required: "none" | "sync_needed";
     message: string;
   } | null> {

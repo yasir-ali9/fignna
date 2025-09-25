@@ -8,7 +8,7 @@ export interface E2BSandboxInfo {
   sandboxId: string;
   templateId: string;
   name: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   startedAt: string; // ISO timestamp
   endAt: string; // ISO timestamp
 }
@@ -128,14 +128,23 @@ export class SandboxService {
   }
 
   // Handle E2B API errors with appropriate error messages
-  static handleE2BError(error: any): string {
-    if (error?.code === "SANDBOX_NOT_FOUND") {
+  static handleE2BError(error: unknown): string {
+    // Type guard to check if error is an object with expected properties
+    const isErrorWithCode = (err: unknown): err is { code: string } => {
+      return typeof err === 'object' && err !== null && 'code' in err;
+    };
+    
+    const isErrorWithMessage = (err: unknown): err is { message: string } => {
+      return typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string';
+    };
+
+    if (isErrorWithCode(error) && error.code === "SANDBOX_NOT_FOUND") {
       return "Sandbox not found in E2B";
-    } else if (error?.code === "RATE_LIMITED") {
+    } else if (isErrorWithCode(error) && error.code === "RATE_LIMITED") {
       return "E2B API rate limit exceeded";
-    } else if (error?.code === "TIMEOUT") {
+    } else if (isErrorWithCode(error) && error.code === "TIMEOUT") {
       return "E2B API request timeout";
-    } else if (error?.message?.includes("network")) {
+    } else if (isErrorWithMessage(error) && error.message.includes("network")) {
       return "Network error connecting to E2B";
     } else {
       return `E2B API error: ${

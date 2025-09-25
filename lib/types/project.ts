@@ -1,4 +1,5 @@
 // Project-related types for database operations
+import type { SandboxInfo } from "../db/schema";
 
 export interface CreateProjectRequest {
   name: string;
@@ -14,7 +15,7 @@ export interface UpdateProjectRequest {
   sandboxId?: string;
   previewUrl?: string;
   // New sandbox info field
-  sandboxInfo?: any; // Using any to match JSONB type
+  sandboxInfo?: SandboxInfo;
   isActive?: boolean;
 }
 
