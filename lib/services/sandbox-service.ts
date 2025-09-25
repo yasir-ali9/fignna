@@ -40,8 +40,7 @@ export class SandboxService {
         error
       );
       throw new Error(
-        `E2B getInfo failed: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `E2B getInfo failed: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -91,8 +90,7 @@ export class SandboxService {
         error
       );
       throw new Error(
-        `Failed to extend sandbox timeout: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Failed to extend sandbox timeout: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -133,9 +131,9 @@ export class SandboxService {
     const isErrorWithCode = (err: unknown): err is { code: string } => {
       return typeof err === 'object' && err !== null && 'code' in err;
     };
-    
+
     const isErrorWithMessage = (err: unknown): err is { message: string } => {
-      return typeof err === 'object' && err !== null && 'message' in err && typeof (err as any).message === 'string';
+      return typeof err === 'object' && err !== null && 'message' in err && typeof (err as { message: unknown }).message === 'string';
     };
 
     if (isErrorWithCode(error) && error.code === "SANDBOX_NOT_FOUND") {
@@ -147,9 +145,8 @@ export class SandboxService {
     } else if (isErrorWithMessage(error) && error.message.includes("network")) {
       return "Network error connecting to E2B";
     } else {
-      return `E2B API error: ${
-        error instanceof Error ? error.message : "Unknown error"
-      }`;
+      return `E2B API error: ${error instanceof Error ? error.message : "Unknown error"
+        }`;
     }
   }
 }

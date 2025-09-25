@@ -34,9 +34,9 @@ export function TicTacToeGame() {
     const availableMoves = currentBoard
       .map((cell, index) => cell === null ? index : null)
       .filter(val => val !== null) as number[];
-    
+
     if (availableMoves.length === 0) return currentBoard;
-    
+
     const randomMove = availableMoves[Math.floor(Math.random() * availableMoves.length)];
     const newBoard = [...currentBoard];
     newBoard[randomMove] = 'O';
@@ -73,7 +73,7 @@ export function TicTacToeGame() {
       const timer = setTimeout(() => {
         const aiBoard = makeAiMove(board);
         setBoard(aiBoard);
-        
+
         const gameWinner = checkWinner(aiBoard);
         if (gameWinner) {
           setWinner(gameWinner);
@@ -140,7 +140,7 @@ export function TicTacToeGame() {
       {(winner || isDraw) && (
         <button
           onClick={resetGame}
-          className="px-4 py-2 bg-ac-01 text-white rounded-md hover:opacity-90 transition-opacity text-sm font-medium"
+          className="px-4 py-2 bg-ac-01 text-white rounded-md hover:opacity-90 cursor-pointer transition-opacity text-sm font-medium"
         >
           Play Again
         </button>
