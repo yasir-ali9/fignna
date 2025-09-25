@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import Header from "../../modules/projects/header";
 import { ContextMenu, useContextMenu } from "@/components/menu";
+import { DeleteProjectModal } from "../../modules/projects/modals/delete";
+import { useToast } from "@/components/toast/use-toast";
 
 interface Project {
   id: string;
@@ -26,7 +28,10 @@ function ProjectsList() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { contextMenu, showContextMenu, hideContextMenu } = useContextMenu();
+  const { toast } = useToast();
 
   // Fetch projects on component mount
   useEffect(() => {
@@ -100,14 +105,14 @@ function ProjectsList() {
 
     // Input validation and sanitization
     if (newName.length < 1 || newName.length > 255) {
-      alert("Project name must be between 1 and 255 characters");
+      toast("Project name must be between 1 and 255 characters", "error", "top-center");
       return;
     }
 
     // Basic XSS prevention - remove potentially dangerous characters
     const cleanName = newName.replace(/[<>\"'&]/g, "");
     if (cleanName !== newName) {
-      alert("Project name contains invalid characters");
+      toast("Project name contains invalid characters", "error", "top-center");
       return;
     }
 
@@ -143,7 +148,10 @@ function ProjectsList() {
           )
         );
         console.error("Failed to rename project:", data.error);
-        alert(`Failed to rename project: ${data.error || "Unknown error"}`);
+        toast(`Failed to rename project: ${data.error || "Unknown error"}`, "error", "top-center");
+      } else {
+        // Show success toast
+        toast(`Project renamed to "${cleanName}"`, "default", "top-center");
       }
     } catch (error) {
       // Revert on error
@@ -153,7 +161,7 @@ function ProjectsList() {
         )
       );
       console.error("Error renaming project:", error);
-      alert(`Error renaming project: ${error}`);
+      toast(`Error renaming project: ${error}`, "error", "top-center");
     }
   };
 
@@ -161,6 +169,53 @@ function ProjectsList() {
     setIsRenaming(false);
     setSelectedProject(null);
     setNewProjectName("");
+  };
+
+  // Handle delete project action
+  const handleDeleteProject = (project: Project) => {
+    setSelectedProject(project);
+    setIsDeleteModalOpen(true);
+    hideContextMenu();
+  };
+
+  // Confirm delete project
+  const confirmDeleteProject = async () => {
+    if (!selectedProject) return;
+
+    setIsDeleting(true);
+    try {
+      const response = await fetch(`/api/v1/projects/${selectedProject.id}`, {
+        method: "DELETE",
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete project");
+      }
+
+      // Remove project from the list
+      setProjects((prev) => prev.filter((p) => p.id !== selectedProject.id));
+      
+      // Show success toast
+      toast(`Project "${selectedProject.name}" deleted successfully`, "default", "top-center");
+      
+      // Close modal and reset state
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Failed to delete project", "error", "top-center");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Cancel delete project
+  const cancelDeleteProject = () => {
+    if (!isDeleting) {
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+    }
   };
 
   // Context menu items
@@ -177,6 +232,10 @@ function ProjectsList() {
       {
         label: "Rename project",
         onClick: () => handleRenameProject(selectedProject),
+      },
+      {
+        label: "Delete project",
+        onClick: () => handleDeleteProject(selectedProject),
       },
     ]
     : [];
@@ -268,7 +327,7 @@ function ProjectsList() {
               }
             }}
           >
-            <div className="text-center">
+            <div className="text-center flex flex-col justify-center items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="32"
@@ -397,6 +456,15 @@ function ProjectsList() {
         isOpen={contextMenu.isOpen}
         position={contextMenu.position}
         onClose={hideContextMenu}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        projectName={selectedProject?.name || ""}
+        onConfirm={confirmDeleteProject}
+        onCancel={cancelDeleteProject}
+        isDeleting={isDeleting}
       />
     </div>
   );

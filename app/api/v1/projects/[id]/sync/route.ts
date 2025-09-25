@@ -1,9 +1,12 @@
 // Synchronizes project files from database to E2B sandbox for live preview
+// Now includes intelligent status checking to avoid unnecessary sandbox creation
 
 import { NextRequest, NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
 import { auth } from "@/lib/auth";
 import { projectQueries, projectIdParamSchema } from "@/lib/db";
+import { SandboxService } from "@/lib/services/sandbox-service";
+import type { SandboxInfo } from "@/lib/db/schema";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -57,10 +60,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Validate project ID parameter
     const paramResult = projectIdParamSchema.safeParse({ id });
     if (!paramResult.success) {
-      console.log(
-        "Sync API - Invalid project ID:",
-        paramResult.error
-      );
+      console.log("Sync API - Invalid project ID:", paramResult.error);
       return NextResponse.json(
         {
           success: false,
@@ -72,7 +72,80 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Get project files from database
+    // STEP 1: Check if sandbox is already running before creating new one
+    console.log(
+      `Sync API - Checking existing sandbox status for project ${id}...`
+    );
+
+    try {
+      // Get project with sandbox info
+      const project = await projectQueries.getById(id, session.user.id);
+
+      // Check if project has sandbox info and if it's still valid
+      if (project.sandboxInfo) {
+        const sandboxInfo = project.sandboxInfo as SandboxInfo;
+
+        // Check if sandbox should still be running
+        if (!SandboxService.isSandboxExpired(sandboxInfo)) {
+          // Verify with E2B that sandbox is actually running
+          if (global.activeSandbox) {
+            try {
+              const e2bInfo = await SandboxService.getSandboxInfo(
+                global.activeSandbox
+              );
+
+              // Verify this is the correct sandbox
+              if (e2bInfo.sandboxId === sandboxInfo.sandbox_id) {
+                // Update database with actual end time from E2B
+                const updatedSandboxInfo: SandboxInfo = {
+                  ...sandboxInfo,
+                  end_time: e2bInfo.endAt,
+                };
+
+                await projectQueries.updateSandboxInfo(
+                  id,
+                  session.user.id,
+                  updatedSandboxInfo
+                );
+
+                const remainingTime =
+                  SandboxService.getRemainingTimeMinutes(updatedSandboxInfo);
+
+                console.log(
+                  `Sync API - Sandbox already running for project ${id}. ${remainingTime} minutes remaining.`
+                );
+
+                return NextResponse.json({
+                  success: true,
+                  data: {
+                    projectId: id,
+                    sandboxId: sandboxInfo.sandbox_id,
+                    previewUrl: sandboxInfo.preview_url,
+                    filesCount: Object.keys(project.files).length,
+                    version: project.version,
+                    remainingTimeMinutes: remainingTime,
+                  },
+                  message: `Sandbox already running. ${remainingTime} minutes remaining.`,
+                  version: "v1",
+                });
+              }
+            } catch (e2bError) {
+              console.warn(
+                `Sync API - E2B verification failed, proceeding with new sandbox:`,
+                e2bError
+              );
+            }
+          }
+        }
+      }
+    } catch (statusError) {
+      console.warn(
+        `Sync API - Status check failed, proceeding with sync:`,
+        statusError
+      );
+    }
+
+    // STEP 2: Get project files from database (sandbox creation needed)
     console.log(
       `Sync API - Fetching project files from database for project ${id} and user ${session.user.id}...`
     );
@@ -80,15 +153,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     let projectFiles;
     try {
       projectFiles = await projectQueries.getFiles(id, session.user.id);
-      console.log(
-        `Sync API - Project files retrieved:`,
-        projectFiles
-      );
+      console.log(`Sync API - Project files retrieved:`, projectFiles);
     } catch (error) {
-      console.error(
-        `Sync API - Error fetching project files:`,
-        error
-      );
+      console.error(`Sync API - Error fetching project files:`, error);
       return NextResponse.json(
         {
           success: false,
@@ -118,16 +185,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     console.log(
-      `Sync API - Found ${
-        Object.keys(projectFiles.files).length
-      } files to sync`
+      `Sync API - Found ${Object.keys(projectFiles.files).length} files to sync`
     );
 
     // Log the files being synced for debugging
-    console.log(
-      "Sync API - Files to sync:",
-      Object.keys(projectFiles.files)
-    );
+    console.log("Sync API - Files to sync:", Object.keys(projectFiles.files));
 
     // Kill existing sandbox if any
     if (global.activeSandbox) {
@@ -218,9 +280,7 @@ print(f'✓ Successfully wrote {len(os.listdir('/home/user/app'))} files to sand
     await sandbox.runCode(fileCreationScript);
 
     // Ensure Vite config has correct E2B settings (only if needed)
-    console.log(
-      "Sync API - Checking Vite config for E2B compatibility..."
-    );
+    console.log("Sync API - Checking Vite config for E2B compatibility...");
     await sandbox.runCode(`
 import os
 import re
@@ -376,12 +436,18 @@ if 'vite' in " ".join(dev_command):
       projectId: id,
     };
 
-    // Update project with sandbox info
+    // STEP 3: Update project with new sandbox info using JSONB structure
     const previewUrl = `https://${host}`;
-    await projectQueries.update(id, session.user.id, {
+
+    // Create comprehensive sandbox info
+    const sandboxInfo = SandboxService.createSandboxInfo(
       sandboxId,
       previewUrl,
-    });
+      30 * 60 * 1000 // 30 minutes timeout
+    );
+
+    // Update project with new sandbox info
+    await projectQueries.updateSandboxInfo(id, session.user.id, sandboxInfo);
 
     console.log(
       `Sync API - Project synced successfully. Preview URL: ${previewUrl}`
@@ -395,6 +461,7 @@ if 'vite' in " ".join(dev_command):
         previewUrl,
         filesCount: Object.keys(projectFiles.files).length,
         version: projectFiles.version,
+        sandbox_info: sandboxInfo,
       },
       message: "Project synchronized to sandbox successfully",
       version: "v1",
@@ -431,9 +498,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const resolvedParams = params instanceof Promise ? await params : params;
     id = resolvedParams?.id;
 
-    console.log(
-      `Sync API - Getting sync status for project ${id}...`
-    );
+    console.log(`Sync API - Getting sync status for project ${id}...`);
 
     // Get current session
     const session = await auth.api.getSession({
@@ -478,8 +543,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       success: true,
       data: {
         projectId: id,
-        sandboxId: project.sandboxId,
-        previewUrl: project.previewUrl,
+        sandbox_info: project.sandboxInfo,
         isActive: hasActiveSandbox,
         lastSyncedAt: project.updatedAt,
         filesCount: Object.keys(project.files).length,

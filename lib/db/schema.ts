@@ -68,6 +68,14 @@ export const verification = pgTable("verification", {
   ),
 });
 
+// Sandbox information structure for tracking E2B sandbox lifecycle
+export interface SandboxInfo {
+  sandbox_id: string;
+  preview_url: string;
+  start_time: string; // ISO 8601 timestamp
+  end_time: string; // ISO 8601 timestamp
+}
+
 export const project = pgTable("project", {
   id: text("id")
     .primaryKey()
@@ -78,8 +86,7 @@ export const project = pgTable("project", {
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   files: jsonb("files").$type<Record<string, string>>().notNull().default({}), // File Storage (JSONB for performance)
-  sandboxId: text("sandbox_id"),
-  previewUrl: text("preview_url"),
+  sandboxInfo: jsonb("sandbox_info").$type<SandboxInfo>(),
   version: integer("version").default(1),
   lastSavedAt: timestamp("last_saved_at").defaultNow(),
   isActive: boolean("is_active").default(true),

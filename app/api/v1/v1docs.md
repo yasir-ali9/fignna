@@ -20,7 +20,7 @@ Creates a new E2B sandbox for Vite React projects using global state management.
 
 #### Request Body
 
-No request body required 
+No request body required
 
 #### Response
 
@@ -260,7 +260,6 @@ The V1 API uses global variables to manage sandbox state:
 - `global.activeSandbox`: The active E2B sandbox instance
 - `global.sandboxData`: Metadata about the current sandbox
 - `global.existingFiles`: Set tracking created files
-
 
 ## Error Handling
 
@@ -1103,3 +1102,5 @@ data: {"type": "complete", "message": "Code generation completed!", "generatedCo
 5. **Real-time Streaming**: Live code generation with progress updates
 6. **Automatic Message Saving**: User and AI messages saved automatically
 7. **Error Recovery**: Failed generations tracked with error status
+
+# some api's are implmented but not listed here

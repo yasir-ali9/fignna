@@ -1,22 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { AppMode } from "@/lib/stores/editor/state";
-import {
-  ContextMenu,
-  useContextMenu,
-} from "@/components/menu/context-menu";
+import { ContextMenu, useContextMenu } from "@/components/menu/context-menu";
 
 export const SandboxDropdown = observer(function SandboxDropdown() {
   const engine = useEditorEngine();
   const { sandbox } = engine;
   const [isCreating, setIsCreating] = useState(false);
+  const [sandboxStatus, setSandboxStatus] = useState<{
+    status: "running" | "expired" | "not_found" | "checking";
+    remaining_time_minutes?: number;
+    message?: string;
+  } | null>(null);
   const { contextMenu, showContextMenu, hideContextMenu } = useContextMenu();
+
+  // Subscribe to SandboxStatusManager for status updates
+  useEffect(() => {
+    if (!engine.projects.currentProject?.id) return;
+
+    // Subscribe to status updates from the centralized status manager
+    const handleStatusUpdate = (status: any) => {
+      setSandboxStatus({
+        status: status.status,
+        remaining_time_minutes: status.sandbox_info?.remaining_time_minutes,
+        message: status.message,
+      });
+    };
+
+    // Set the callback on the status manager
+    if (engine.statusManager) {
+      engine.statusManager.setStatusUpdateCallback(handleStatusUpdate);
+      
+      // If status manager is already running, get current status
+      if (engine.statusManager.isRunning) {
+        engine.statusManager.checkStatus().then(handleStatusUpdate);
+      }
+    }
+
+    return () => {
+      // Clean up callback when component unmounts
+      if (engine.statusManager) {
+        engine.statusManager.setStatusUpdateCallback(() => {});
+      }
+    };
+  }, [engine.projects.currentProject?.id, engine.statusManager]);
 
   // Get status dot color based on sandbox status
   const getStatusDotColor = () => {
+    // Use new status information if available
+    if (sandboxStatus) {
+      switch (sandboxStatus.status) {
+        case "running":
+          return "bg-green-500";
+        case "expired":
+          return "bg-red-500";
+        case "not_found":
+          return "bg-fg-60";
+        case "checking":
+          return "bg-yellow-500";
+        default:
+          return "bg-fg-60";
+      }
+    }
+
+    // Fallback to legacy sandbox status
     if (!sandbox.currentSandbox) return "bg-fg-60"; // Gray for no sandbox
 
     switch (sandbox.currentSandbox.status) {
@@ -31,6 +81,30 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
       default:
         return "bg-fg-60";
     }
+  };
+
+  // Get status text for display
+  const getStatusText = () => {
+    if (sandboxStatus) {
+      switch (sandboxStatus.status) {
+        case "running":
+          return sandboxStatus.remaining_time_minutes
+            ? `${sandboxStatus.remaining_time_minutes}m remaining`
+            : "Running";
+        case "expired":
+          return "Expired";
+        case "not_found":
+          return "No sandbox";
+        case "checking":
+          return "Checking...";
+        default:
+          return "Unknown";
+      }
+    }
+
+    // Fallback to legacy status
+    if (!sandbox.currentSandbox) return "No sandbox";
+    return sandbox.currentSandbox.status || "Unknown";
   };
 
   // Sandbox control handlers - now connected to MobX store
@@ -123,9 +197,25 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
   const getContextMenuItems = () => {
     const items = [];
 
-    if (sandbox.currentSandbox) {
+    // Add status information at the top
+    if (sandboxStatus) {
+      items.push({
+        label: `Status: ${sandboxStatus.status}${
+          sandboxStatus.remaining_time_minutes
+            ? ` (${sandboxStatus.remaining_time_minutes}m remaining)`
+            : ""
+        }`,
+        icon: (
+          <div className={`w-2 h-2 rounded-full ${getStatusDotColor()}`}></div>
+        ),
+        onClick: () => {}, // No action, just info
+        disabled: true,
+      });
+    }
+
+    if (sandbox.currentSandbox || sandboxStatus?.status === "running") {
       // Preview Link
-      if (sandbox.currentSandbox.url) {
+      if (sandbox.currentSandbox?.url) {
         items.push({
           label: "Open Preview",
           icon: (
@@ -239,12 +329,12 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
 
   return (
     <>
-      {/* Sandbox Button with Icon and Status Dot */}
+      {/* Sandbox Button with Icon, Status Dot, and Status Text */}
       <button
         onClick={handleSandboxClick}
-        className="flex items-center gap-1 px-2 py-1.5 hover:bg-bk-40 rounded-lg transition-colors group cursor-pointer"
+        className="flex items-center gap-2 px-2 py-1.5 hover:bg-bk-40 rounded-lg transition-colors group cursor-pointer"
       >
-        {/* Sandbox Icon */}
+        {/* Sandbox Icon with Status Dot */}
         <div className="w-4 h-4 text-fg-50 group-hover:text-fg-30 relative">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -261,8 +351,13 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
           ></div>
         </div>
 
+        {/* Status Text */}
+        <div className="text-xs text-fg-60 group-hover:text-fg-50 min-w-0">
+          {getStatusText()}
+        </div>
+
         {/* Chevron Down */}
-        <div className="w-3 h-3 text-fg-60 group-hover:text-fg-50 transition-transform duration-200">
+        <div className="w-3 h-3 text-fg-60 group-hover:text-fg-50 transition-transform duration-200 flex-shrink-0">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
             <path
               d="M3 4.5L6 7.5L9 4.5"

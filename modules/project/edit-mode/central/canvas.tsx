@@ -187,12 +187,27 @@ export const Canvas = observer(() => {
     [editorEngine]
   );
 
-  // Keyboard handling for space key
+  // Helper function to check if an input element is currently focused
+  const isInputElementFocused = () => {
+    const activeElement = document.activeElement;
+    if (!activeElement) return false;
+
+    const tagName = activeElement.tagName.toLowerCase();
+    const isInput = tagName === 'input' || tagName === 'textarea';
+    const isContentEditable = activeElement.getAttribute('contenteditable') === 'true';
+
+    return isInput || isContentEditable;
+  };
+
+  // Keyboard handling for space key - only when not in input fields
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
       if (event.code === "Space" && !event.repeat) {
-        event.preventDefault();
-        editorEngine.state.setSpacePressed(true);
+        // Only handle space key if no input element is focused
+        if (!isInputElementFocused()) {
+          event.preventDefault();
+          editorEngine.state.setSpacePressed(true);
+        }
       }
     },
     [editorEngine.state]
@@ -201,14 +216,17 @@ export const Canvas = observer(() => {
   const handleKeyUp = useCallback(
     (event: KeyboardEvent) => {
       if (event.code === "Space") {
-        event.preventDefault();
-        editorEngine.state.setSpacePressed(false);
-        if (isDragging) {
-          // Restore text selection when space is released
-          document.body.style.userSelect = "";
-          document.body.style.webkitUserSelect = "";
+        // Only handle space key if no input element is focused
+        if (!isInputElementFocused()) {
+          event.preventDefault();
+          editorEngine.state.setSpacePressed(false);
+          if (isDragging) {
+            // Restore text selection when space is released
+            document.body.style.userSelect = "";
+            document.body.style.webkitUserSelect = "";
+          }
+          setIsDragging(false); // Stop dragging when space is released
         }
-        setIsDragging(false); // Stop dragging when space is released
       }
     },
     [editorEngine.state, isDragging]

@@ -8,6 +8,7 @@ import { SandboxManager } from "./sandbox";
 import { FilesManager } from "./files";
 import { ProjectsManager } from "./projects";
 import { ChatManager } from "./chat";
+import { SandboxStatusManager } from "@/lib/services/sandbox-status-manager";
 
 export class EditorEngine {
   canvas: CanvasManager;
@@ -19,6 +20,7 @@ export class EditorEngine {
   files: FilesManager;
   projects: ProjectsManager;
   chat: ChatManager;
+  statusManager: SandboxStatusManager;
 
   constructor() {
     this.canvas = new CanvasManager();
@@ -30,6 +32,7 @@ export class EditorEngine {
     this.files = new FilesManager(this);
     this.projects = new ProjectsManager(this);
     this.chat = new ChatManager(this);
+    this.statusManager = new SandboxStatusManager();
 
     makeAutoObservable(this);
   }
@@ -45,5 +48,6 @@ export class EditorEngine {
     this.files.dispose();
     this.projects.dispose();
     this.chat.dispose();
+    this.statusManager.dispose();
   }
 }

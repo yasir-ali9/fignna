@@ -1,6 +1,14 @@
 import { makeAutoObservable } from "mobx";
 import type { EditorEngine } from "../index";
 
+// Sandbox information structure matching database schema
+export interface SandboxInfo {
+  sandbox_id: string;
+  preview_url: string;
+  start_time: string; // ISO 8601 timestamp
+  end_time: string; // ISO 8601 timestamp
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -8,6 +16,9 @@ export interface Project {
   userId: string;
   files: Record<string, string>;
   dependencies: Record<string, string>;
+  // New comprehensive sandbox info
+  sandboxInfo?: SandboxInfo;
+  // Legacy fields for backward compatibility during migration
   sandboxId?: string;
   previewUrl?: string;
   version: number;
@@ -28,8 +39,11 @@ export interface UpdateProjectRequest {
   description?: string;
   files?: Record<string, string>;
   dependencies?: Record<string, string>;
+  // Legacy fields for backward compatibility
   sandboxId?: string;
   previewUrl?: string;
+  // New sandbox info field
+  sandboxInfo?: SandboxInfo;
 }
 
 export class ProjectsManager {
@@ -78,7 +92,7 @@ export class ProjectsManager {
     }
   }
 
-  async loadProject(projectId: string) {
+  async loadProject(projectId: string, options?: { skipAutoSync?: boolean }) {
     this.isLoading = true;
     this.error = null;
 
@@ -89,8 +103,13 @@ export class ProjectsManager {
       // Sync with existing managers
       this.engine.files.setFiles(project.files);
 
-      // Update sandbox info if available
-      if (project.sandboxId && project.previewUrl) {
+      // Update sandbox info if available (support both new and legacy formats)
+      if (project.sandboxInfo) {
+        this.engine.sandbox.updateSandboxInfo(
+          project.sandboxInfo.sandbox_id,
+          project.sandboxInfo.preview_url
+        );
+      } else if (project.sandboxId && project.previewUrl) {
         this.engine.sandbox.updateSandboxInfo(
           project.sandboxId,
           project.previewUrl
@@ -100,25 +119,33 @@ export class ProjectsManager {
       this.isDirty = false;
       this.isLoading = false;
 
-      // Automatically sync project to sandbox for live preview
-      // This ensures existing projects have a running sandbox
-      console.log(
-        `[ProjectsManager] Auto-syncing project ${projectId} to sandbox...`
-      );
-      try {
-        await this.syncToSandbox();
+      // Conditionally sync project to sandbox based on options
+      // skipAutoSync = true for NEW projects (they need fresh sandbox, not sync from DB)
+      // skipAutoSync = false for EXISTING projects (they need to sync DB files to sandbox)
+      if (!options?.skipAutoSync) {
         console.log(
-          `[ProjectsManager] Project ${projectId} synced to sandbox successfully`
+          `[ProjectsManager] Auto-syncing existing project ${projectId} to sandbox...`
         );
-      } catch (syncError) {
-        // Don't fail the entire load if sync fails - user can manually sync later
-        console.warn(
-          `[ProjectsManager] Auto-sync failed for project ${projectId}:`,
-          syncError
-        );
-        // Store sync error separately so UI can show it
-        this.error = `Project loaded but sandbox sync failed: ${syncError instanceof Error ? syncError.message : "Unknown error"
+        try {
+          await this.syncToSandbox();
+          console.log(
+            `[ProjectsManager] Project ${projectId} synced to sandbox successfully`
+          );
+        } catch (syncError) {
+          // Don't fail the entire load if sync fails - user can manually sync later
+          console.warn(
+            `[ProjectsManager] Auto-sync failed for project ${projectId}:`,
+            syncError
+          );
+          // Store sync error separately so UI can show it
+          this.error = `Project loaded but sandbox sync failed: ${
+            syncError instanceof Error ? syncError.message : "Unknown error"
           }`;
+        }
+      } else {
+        console.log(
+          `[ProjectsManager] Skipping auto-sync for new project ${projectId} (will create fresh sandbox instead)`
+        );
       }
     } catch (error) {
       this.error = error instanceof Error ? error.message : "Unknown error";
@@ -188,7 +215,8 @@ export class ProjectsManager {
       }
 
       console.log(
-        `[ProjectsManager] Saving ${Object.keys(changedFiles).length
+        `[ProjectsManager] Saving ${
+          Object.keys(changedFiles).length
         } changed files:`,
         Object.keys(changedFiles)
       );
@@ -261,7 +289,7 @@ export class ProjectsManager {
     }
   }
 
-  // Sync project to sandbox
+  // Sync project to sandbox with intelligent status checking
   async syncToSandbox() {
     if (!this.currentProject || this.isSyncing) return;
 
@@ -283,16 +311,29 @@ export class ProjectsManager {
         throw new Error(result.error || "Failed to sync to sandbox");
       }
 
-      // Update project with sandbox info
+      // Update project with new sandbox_info structure
+      if (result.data.sandbox_info) {
+        this.currentProject.sandboxInfo = result.data.sandbox_info;
+      }
+
+      // Also update legacy fields for backward compatibility
       this.currentProject.sandboxId = result.data.sandboxId;
       this.currentProject.previewUrl = result.data.previewUrl;
 
-      // Update sandbox manager
-      this.engine.sandbox.updateSandboxInfo(
-        result.data.sandboxId,
-        result.data.previewUrl
-      );
+      // Update sandbox manager with the correct info
+      const sandboxId =
+        result.data.sandbox_info?.sandbox_id || result.data.sandboxId;
+      const previewUrl =
+        result.data.sandbox_info?.preview_url || result.data.previewUrl;
 
+      if (sandboxId && previewUrl) {
+        this.engine.sandbox.updateSandboxInfo(sandboxId, previewUrl);
+      }
+
+      console.log(
+        `[ProjectsManager] Sync completed with sandbox info:`,
+        result.data.sandbox_info
+      );
       this.isSyncing = false;
     } catch (error) {
       this.error =
@@ -440,6 +481,90 @@ export class ProjectsManager {
     }
 
     return result.data.project;
+  }
+
+  // Sandbox status checking methods
+  async checkSandboxStatus(): Promise<{
+    success: boolean;
+    status: "running" | "expired" | "not_found";
+    sandbox_info?: any;
+    action_required: "none" | "sync_needed";
+    message: string;
+  } | null> {
+    if (!this.currentProject) return null;
+
+    try {
+      const response = await fetch(
+        `/api/v1/projects/${this.currentProject.id}/sandbox/status`
+      );
+      const result = await response.json();
+
+      if (result.success && result.sandbox_info) {
+        // Update current project with latest sandbox info
+        this.currentProject.sandboxInfo = {
+          sandbox_id: result.sandbox_info.sandbox_id,
+          preview_url: result.sandbox_info.preview_url,
+          start_time: result.sandbox_info.start_time,
+          end_time: result.sandbox_info.end_time,
+        };
+      }
+
+      return result;
+    } catch (error) {
+      console.error("[ProjectsManager] Status check failed:", error);
+      return {
+        success: false,
+        status: "not_found",
+        action_required: "sync_needed",
+        message: `Status check failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
+      };
+    }
+  }
+
+  // Get sandbox remaining time in minutes
+  getSandboxRemainingTime(): number {
+    if (!this.currentProject?.sandboxInfo) return 0;
+
+    const currentTime = new Date();
+    const endTime = new Date(this.currentProject.sandboxInfo.end_time);
+    const remainingTimeMs = endTime.getTime() - currentTime.getTime();
+    return Math.max(0, Math.floor(remainingTimeMs / 60000));
+  }
+
+  // Check if sandbox is expired
+  isSandboxExpired(): boolean {
+    if (!this.currentProject?.sandboxInfo) return true;
+
+    const currentTime = new Date();
+    const endTime = new Date(this.currentProject.sandboxInfo.end_time);
+    return endTime <= currentTime;
+  }
+
+  // Get current sandbox status for UI
+  getSandboxStatusForUI(): {
+    status: "running" | "expired" | "not_found";
+    remainingMinutes: number;
+    sandboxId?: string;
+    previewUrl?: string;
+  } {
+    if (!this.currentProject?.sandboxInfo) {
+      return {
+        status: "not_found",
+        remainingMinutes: 0,
+      };
+    }
+
+    const remainingMinutes = this.getSandboxRemainingTime();
+    const isExpired = this.isSandboxExpired();
+
+    return {
+      status: isExpired ? "expired" : "running",
+      remainingMinutes,
+      sandboxId: this.currentProject.sandboxInfo.sandbox_id,
+      previewUrl: this.currentProject.sandboxInfo.preview_url,
+    };
   }
 
   // Getters for computed values

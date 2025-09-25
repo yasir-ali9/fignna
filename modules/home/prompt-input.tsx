@@ -7,14 +7,16 @@ import { useAuthGuard } from "@/lib/hooks/use-auth-guard";
 import { useToast } from "@/components/toast/use-toast";
 import AuthModal from "@/modules/auth/auth-modal";
 
+
 export default function PromptInput() {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState(modelsConfig.defaultModel);
 
-  // Auth guard and toast hooks
+  // Auth guard, toast, and editor engine hooks
   const authGuard = useAuthGuard() as any;
   const { toast } = useToast();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,16 +40,20 @@ export default function PromptInput() {
           const result = await response.json();
 
           if (result.success) {
-            // Store the prompt and model in sessionStorage for the editor to pick up
-            sessionStorage.setItem("initialPrompt", prompt.trim());
+            // Store the selected model in sessionStorage for the editor to pick up
             sessionStorage.setItem("selectedModel", selectedModel);
+
+            // Store the prompt in sessionStorage for the project creation flow
+            sessionStorage.setItem("initialPrompt", prompt.trim());
 
             // Show success toast
             toast("Project created successfully! Redirecting...", "success");
 
-            // Navigate to the new project without URL parameters
+            // Navigate to the new project with action-based flow starting with verification
+            // No prompt parameter needed - it's now in sessionStorage
             setTimeout(() => {
-              window.location.href = `/project/${result.data.project.id}`;
+              const projectId = result.data.project.id;
+              window.location.href = `/project/${projectId}?a=create`;
             }, 1000);
           } else {
             console.error("Failed to create project:", result.error);
@@ -138,15 +144,15 @@ export default function PromptInput() {
                     direction="down"
                   />
                 </div>
-
               </div>
               <button
                 type="submit"
                 disabled={!prompt.trim() || isLoading}
-                className={`transition-all duration-200 ${prompt.trim() && !isLoading
-                  ? "text-fg-30 hover:text-fg-10 cursor-pointer"
-                  : "text-fg-70 cursor-not-allowed"
-                  }`}
+                className={`transition-all duration-200 ${
+                  prompt.trim() && !isLoading
+                    ? "text-fg-30 hover:text-fg-10 cursor-pointer"
+                    : "text-fg-70 cursor-not-allowed"
+                }`}
               >
                 {isLoading ? (
                   <svg

@@ -218,6 +218,11 @@ export class ChatManager {
     this.isSendingMessage = true;
     this.error = null;
 
+    // Notify status manager that operation is starting
+    if (this.engine.statusManager) {
+      this.engine.statusManager.setOperationInProgress(true);
+    }
+
     try {
       // Add user message to UI immediately
       const userMessage: Message = {
@@ -317,11 +322,23 @@ export class ChatManager {
                 }
 
                 // Auto-apply the generated code
+                console.log("[ChatManager] Code generation complete, checking if we can apply...");
+                console.log("[ChatManager] Generated code length:", fullResponse.trim().length);
+                console.log("[ChatManager] Current sandbox ID:", this.engine.sandbox.currentSandboxId);
+                console.log("[ChatManager] Current sandbox object:", this.engine.sandbox.currentSandbox);
+                
                 if (
                   fullResponse.trim() &&
                   this.engine.sandbox.currentSandboxId
                 ) {
+                  console.log("[ChatManager] Applying generated code to sandbox...");
                   await this.applyGeneratedCode(fullResponse);
+                } else {
+                  console.warn("[ChatManager] Cannot apply code - missing requirements:", {
+                    hasCode: !!fullResponse.trim(),
+                    hasSandboxId: !!this.engine.sandbox.currentSandboxId,
+                    sandboxStatus: this.engine.sandbox.currentSandbox?.status
+                  });
                 }
               } else if (data.type === "error") {
                 // Update message with error
@@ -391,13 +408,28 @@ export class ChatManager {
       this.isSendingMessage = false;
       this.isStreaming = false;
       this.streamingMessageId = null;
+
+      // Always notify status manager that operation is complete
+      if (this.engine.statusManager) {
+        this.engine.statusManager.setOperationInProgress(false);
+      }
     }
   }
 
   // Apply generated code to sandbox (similar to existing implementation)
   private async applyGeneratedCode(code: string) {
+    console.log("[ChatManager] applyGeneratedCode called with code length:", code.length);
+    
     if (!this.engine.sandbox.currentSandboxId) {
+      console.error("[ChatManager] Cannot apply code - no current sandbox ID");
       return;
+    }
+
+    console.log("[ChatManager] Applying code to sandbox ID:", this.engine.sandbox.currentSandboxId);
+
+    // Notify status manager that code application is starting
+    if (this.engine.statusManager) {
+      this.engine.statusManager.setOperationInProgress(true);
     }
 
     try {

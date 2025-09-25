@@ -27,28 +27,55 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
   // Auth guard hook
   const authGuard = useAuthGuard() as any; // Type assertion to access internal method
 
-  // Initialize sandbox and send initial prompt
+  // Check if sandbox is ready for chat operations
+  const isSandboxReady = useCallback(() => {
+    return (
+      engine.sandbox.currentSandbox &&
+      engine.sandbox.currentSandbox.status === "running" &&
+      engine.sandbox.currentSandbox.url &&
+      !engine.sandbox.isCreating &&
+      !engine.projects.isSyncing
+    );
+  }, [engine.sandbox, engine.projects]);
+
+  // Initialize sandbox and send initial prompt (only when sandbox is ready)
   const initializeAndSendPrompt = useCallback(
     async (prompt: string) => {
       try {
-        // Check if we already have a sandbox
-        if (!engine.sandbox.currentSandbox) {
-          await engine.sandbox.createSandbox();
+        // Wait for sandbox to be ready before sending prompt
+        if (!isSandboxReady()) {
+          console.log("[ChatPanel] Waiting for sandbox to be ready before sending prompt...");
+          
+          // Check if we need to create a sandbox
+          if (!engine.sandbox.currentSandbox && !engine.sandbox.isCreating) {
+            console.log("[ChatPanel] No sandbox found, creating one...");
+            await engine.sandbox.createSandbox();
+          }
+
+          // Wait for sandbox to be ready with timeout
+          let attempts = 0;
+          const maxAttempts = 30; // 30 seconds timeout
+          
+          while (!isSandboxReady() && attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            attempts++;
+          }
+
+          if (!isSandboxReady()) {
+            throw new Error("Sandbox not ready after timeout");
+          }
         }
 
-        // Now send the initial prompt using ChatManager
-        setTimeout(async () => {
-          await engine.chat.sendMessage(prompt, selectedModel);
-        }, 1000);
+        console.log("[ChatPanel] Sandbox is ready, sending initial prompt...");
+        await engine.chat.sendMessage(prompt, selectedModel);
       } catch (error) {
-        console.error("Failed to initialize:", error);
-        // Still try to send the prompt
-        setTimeout(async () => {
-          await engine.chat.sendMessage(prompt, selectedModel);
-        }, 1000);
+        console.error("Failed to initialize sandbox for chat:", error);
+        // Still try to send the prompt as fallback
+        console.log("[ChatPanel] Attempting to send prompt without sandbox readiness check...");
+        await engine.chat.sendMessage(prompt, selectedModel);
       }
     },
-    [engine.sandbox, engine.chat]
+    [engine.sandbox, engine.chat, engine.projects, selectedModel, isSandboxReady]
   );
 
   // Initialize chat when project loads (with guard to prevent duplicate calls)
@@ -68,25 +95,53 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
 
   // Handle initial prompt from MobX state (not URL)
   useEffect(() => {
-    const initialPrompt = engine.state.initialPrompt;
-    const storedModel = sessionStorage.getItem("selectedModel");
+    const processInitialPrompt = async () => {
+      const initialPrompt = engine.state.initialPrompt;
+      const storedModel = sessionStorage.getItem("selectedModel");
 
-    // Set stored model if available
-    if (storedModel && modelsConfig.availableModels.includes(storedModel)) {
-      setSelectedModel(storedModel);
-      sessionStorage.removeItem("selectedModel"); // Clear after use
-    }
+      // Set stored model if available
+      if (storedModel && modelsConfig.availableModels.includes(storedModel)) {
+        setSelectedModel(storedModel);
+        sessionStorage.removeItem("selectedModel"); // Clear after use
+      }
 
-    if (initialPrompt && engine.chat.hasActiveChat) {
-      console.log("Processing initial prompt from MobX state:", initialPrompt);
-      // Clear the prompt from state to prevent re-triggering
-      engine.state.clearInitialPrompt();
-      // First ensure we have a sandbox, then send the prompt
-      initializeAndSendPrompt(initialPrompt);
+      if (initialPrompt && engine.projects.currentProject) {
+        console.log("Processing initial prompt from MobX state:", initialPrompt);
+        
+        // Ensure chat is loaded before processing initial prompt
+        if (!engine.chat.hasActiveChat && !engine.chat.isLoadingChats) {
+          console.log("Loading project chats before processing initial prompt...");
+          await engine.chat.loadProjectChats(engine.projects.currentProject.id);
+        }
+
+        // Wait for chat to be ready
+        let attempts = 0;
+        const maxAttempts = 10; // 10 seconds timeout
+        while (!engine.chat.hasActiveChat && attempts < maxAttempts) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          attempts++;
+        }
+
+        if (engine.chat.hasActiveChat) {
+          console.log("Chat is ready, processing initial prompt...");
+          // Clear the prompt from state to prevent re-triggering
+          engine.state.clearInitialPrompt();
+          // First ensure we have a sandbox, then send the prompt
+          await initializeAndSendPrompt(initialPrompt);
+        } else {
+          console.error("Chat failed to load within timeout, cannot process initial prompt");
+        }
+      }
+    };
+
+    if (engine.state.initialPrompt) {
+      processInitialPrompt();
     }
   }, [
     engine.state.initialPrompt,
+    engine.projects.currentProject?.id,
     engine.chat.hasActiveChat,
+    engine.chat.isLoadingChats,
     engine.state,
     initializeAndSendPrompt,
   ]);
@@ -231,9 +286,9 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto space-y-3 p-3">
           {engine.chat.messages.length === 0 && (
-            <div className="flex justify-start">
-              <div className="text-fg-50 p-2 rounded-lg text-[11px]">
-                Hello! I&apos;m fignna. I can help you build React apps with AI.
+            <div className="flex items-center justify-start h-full">
+              <div className="text-fg-60 text-[13px]">
+                Hello! I&apos;m fignna.<br/> I can help you build React apps with AI.
               </div>
             </div>
           )}

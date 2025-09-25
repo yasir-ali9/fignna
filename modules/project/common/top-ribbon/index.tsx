@@ -31,7 +31,12 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
   };
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    engine.state.setProjectName(e.target.value);
+    const newValue = e.target.value;
+    
+    // Limit to 30 characters including spaces
+    if (newValue.length <= 30) {
+      engine.state.setProjectName(newValue);
+    }
   };
 
   const handleNameSubmit = async () => {
@@ -43,21 +48,14 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
     const newName = engine.state.projectName.trim();
     const oldName = engine.projects.currentProject.name;
 
-    // Input validation
+    // If name is empty after trimming, keep the current name
     if (!newName) {
       engine.state.setProjectName(oldName);
       engine.state.setEditingProjectName(false);
       return;
     }
 
-    if (newName.length > 255) {
-      alert("Project name must be less than 255 characters");
-      engine.state.setProjectName(oldName);
-      engine.state.setEditingProjectName(false);
-      return;
-    }
-
-    // Basic XSS prevention
+    // Basic XSS prevention - allow spaces but remove dangerous characters
     const cleanName = newName.replace(/[<>"'&]/g, "");
     if (cleanName !== newName) {
       alert("Project name contains invalid characters");
@@ -165,17 +163,17 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
               style={{
                 width: `${Math.max(engine.state.projectName.length * 8, 60)}px`,
               }}
+              placeholder="Enter project name"
+              maxLength={30}
             />
           ) : (
             <button
               onClick={handleNameClick}
               className="text-fg-50 text-[12px] hover:text-fg-40 transition-colors cursor-text"
             >
-              {engine.state.isEditingProjectName
-                ? engine.state.projectName
-                : engine.projects.currentProject?.name ||
-                  project?.name ||
-                  "Unnamed"}
+              {engine.projects.currentProject?.name ||
+                project?.name ||
+                "Unnamed"}
             </button>
           )}
         </div>

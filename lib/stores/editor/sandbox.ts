@@ -34,9 +34,6 @@ export class SandboxManager {
   // Reference to editor engine for project integration
   private engine: EditorEngine | null = null;
 
-  // Health monitoring
-  private healthCheckInterval: NodeJS.Timeout | null = null;
-
   constructor(engine?: EditorEngine) {
     this.engine = engine || null;
     makeAutoObservable(this);
@@ -61,9 +58,15 @@ export class SandboxManager {
     try {
       console.log("Creating E2B sandbox via V1 API...");
 
+      // Get current project ID to save sandbox info to database
+      const projectId = this.engine?.projects.currentProject?.id;
+
       const response = await fetch("/api/v1/sandbox/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId: projectId, // Pass project ID so API can save sandbox_info to DB
+        }),
       });
 
       const result = await response.json();
@@ -95,8 +98,22 @@ export class SandboxManager {
 
       console.log("Sandbox created successfully:", this.currentSandbox);
 
-      // Start health monitoring for the new sandbox
-      this.startHealthMonitoring();
+      // Verify the sandbox is accessible before resolving
+      try {
+        console.log("Verifying sandbox accessibility...");
+        const verifyResponse = await fetch(result.url, { 
+          method: 'HEAD',
+          signal: AbortSignal.timeout(5000) // 5 second timeout
+        });
+        if (verifyResponse.ok) {
+          console.log("Sandbox verification successful - sandbox is accessible");
+        } else {
+          console.warn("Sandbox verification failed but continuing - sandbox may not be fully ready yet");
+        }
+      } catch (verifyError) {
+        console.warn("Sandbox verification failed but continuing:", verifyError);
+        // Don't fail the entire creation process if verification fails
+      }
     } catch (error) {
       this.error =
         error instanceof Error ? error.message : "Failed to create sandbox";
@@ -345,80 +362,14 @@ export class SandboxManager {
     }
   }
 
-  /**
-   * Monitor sandbox health and auto-restore if needed
-   */
-  async checkSandboxHealth(): Promise<boolean> {
-    if (!this.currentSandbox) return false;
 
-    try {
-      const response = await fetch("/api/v1/sandbox/status");
-      const result = await response.json();
 
-      if (result.success && result.status === "active") {
-        this.updateSandboxStatus("running");
-        return true;
-      } else if (
-        result.status === "expired" ||
-        result.status === "no_sandbox"
-      ) {
-        console.log("Sandbox expired, attempting auto-restore...");
-        // Sandbox expired, restore from project
-        await this.restoreProjectSandbox();
-        return this.currentSandbox?.status === "running" || false;
-      } else if (result.status === "unhealthy") {
-        console.log("Sandbox unhealthy, attempting recovery...");
-        this.updateSandboxStatus("error");
-        // Try to restore if we have project context
-        if (this.engine?.projects.currentProject) {
-          await this.restoreProjectSandbox();
-          return this.currentSandbox?.status === "running" || false;
-        }
-        return false;
-      } else {
-        this.updateSandboxStatus("error");
-        return false;
-      }
-    } catch (error) {
-      console.error("Sandbox health check failed:", error);
-      this.updateSandboxStatus("error");
-      return false;
-    }
-  }
 
-  /**
-   * Start periodic health monitoring
-   */
-  startHealthMonitoring(): void {
-    // Check health every 5 minutes when sandbox is active
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-    }
-
-    this.healthCheckInterval = setInterval(async () => {
-      if (this.currentSandbox && this.currentSandbox.status === "running") {
-        await this.checkSandboxHealth();
-      }
-    }, 5 * 60 * 1000); // 5 minutes
-  }
-
-  /**
-   * Stop health monitoring
-   */
-  stopHealthMonitoring(): void {
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = null;
-    }
-  }
 
   /**
    * Cleanup resources when manager is disposed
    */
   dispose(): void {
-    // Stop health monitoring
-    this.stopHealthMonitoring();
-
     // Clean up any active subscriptions, timers, etc.
     this.currentSandbox = null;
     this.isCreating = false;

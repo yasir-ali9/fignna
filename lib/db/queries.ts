@@ -6,6 +6,7 @@ import type {
   UpdateProjectRequest,
   CreateVersionRequest,
 } from "../types/project";
+import type { SandboxInfo } from "./schema";
 
 // Project CRUD Operations
 export const projectQueries = {
@@ -88,8 +89,7 @@ export const projectQueries = {
           description: project.description,
           userId: project.userId,
           // files: project.files, // Excluded for better performance in project listing
-          sandboxId: project.sandboxId,
-          previewUrl: project.previewUrl,
+          sandboxInfo: project.sandboxInfo,
           version: project.version,
           lastSavedAt: project.lastSavedAt,
           isActive: project.isActive,
@@ -263,6 +263,85 @@ export const projectQueries = {
     } catch (error) {
       throw new Error(
         `Failed to fetch project files: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  },
+
+  // Update sandbox info only (efficient for sandbox lifecycle management)
+  async updateSandboxInfo(
+    projectId: string,
+    userId: string,
+    sandboxInfo: any // Using any to match the JSONB type
+  ) {
+    // Validate input parameters
+    if (!projectId?.trim() || !userId?.trim()) {
+      throw new Error("Project ID and User ID are required");
+    }
+    if (!sandboxInfo || typeof sandboxInfo !== "object") {
+      throw new Error("Sandbox info must be a valid object");
+    }
+
+    try {
+      const [projectResult] = await db
+        .update(project)
+        .set({
+          sandboxInfo: sandboxInfo,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(project.id, projectId),
+            eq(project.userId, userId),
+            eq(project.isActive, true)
+          )
+        )
+        .returning({
+          id: project.id,
+          sandboxInfo: project.sandboxInfo,
+          updatedAt: project.updatedAt,
+        });
+
+      if (!projectResult) {
+        throw new Error("Project not found or access denied");
+      }
+
+      return projectResult;
+    } catch (error) {
+      throw new Error(
+        `Failed to update sandbox info: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  },
+
+  // Get sandbox info only (efficient for status checking)
+  async getSandboxInfo(projectId: string, userId: string) {
+    try {
+      const [projectResult] = await db
+        .select({
+          id: project.id,
+          sandboxInfo: project.sandboxInfo,
+        })
+        .from(project)
+        .where(
+          and(
+            eq(project.id, projectId),
+            eq(project.userId, userId),
+            eq(project.isActive, true)
+          )
+        );
+
+      if (!projectResult) {
+        throw new Error("Project not found");
+      }
+
+      return projectResult;
+    } catch (error) {
+      throw new Error(
+        `Failed to fetch sandbox info: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );

@@ -10,8 +10,11 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
   files?: Record<string, string>;
+  // Legacy fields for backward compatibility
   sandboxId?: string;
   previewUrl?: string;
+  // New sandbox info field
+  sandboxInfo?: any; // Using any to match JSONB type
   isActive?: boolean;
 }
 

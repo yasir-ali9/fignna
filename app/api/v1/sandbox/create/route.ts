@@ -1,10 +1,12 @@
 /**
  * V1 Sandbox Creation API Route
  * Creates new E2B sandbox for Vite React projects
+ * Now includes sandbox info tracking for timeout management
  */
 
 import { NextResponse } from "next/server";
 import { Sandbox } from "@e2b/code-interpreter";
+import { SandboxService } from "@/lib/services/sandbox-service";
 
 // Store active sandbox globally
 declare global {
@@ -13,11 +15,26 @@ declare global {
   var existingFiles: Set<string>;
 }
 
-export async function POST() {
+export async function POST(request: Request) {
   let sandbox: Sandbox | null = null;
 
   try {
     console.log("[V1 Sandbox API] Creating Vite React sandbox...");
+
+    // Parse request body to get project ID (optional)
+    let projectId: string | null = null;
+    try {
+      const body = await request.json();
+      projectId = body.projectId || null;
+      console.log(
+        `[V1 Sandbox API] Project ID: ${projectId || "not provided"}`
+      );
+    } catch (e) {
+      // Body parsing failed, continue without project ID
+      console.log(
+        "[V1 Sandbox API] No request body or invalid JSON, continuing without project ID"
+      );
+    }
 
     // Kill existing sandbox if any
     if (global.activeSandbox) {
@@ -306,11 +323,21 @@ time.sleep(2)
 print('✓ Tailwind CSS should be loaded')
     `);
 
-    // Store sandbox globally
+    // Store sandbox globally with enhanced info
     global.activeSandbox = sandbox;
+
+    // Create sandbox info for tracking
+    const sandboxInfo = SandboxService.createSandboxInfo(
+      sandboxId,
+      `https://${host}`,
+      30 * 60 * 1000 // 30 minutes timeout
+    );
+
     global.sandboxData = {
       sandboxId,
       url: `https://${host}`,
+      sandbox_info: sandboxInfo,
+      createdAt: new Date().toISOString(),
     };
 
     // Set extended timeout on the sandbox instance if method available
@@ -324,10 +351,55 @@ print('✓ Tailwind CSS should be loaded')
       `https://${host}`
     );
 
+    // IMPORTANT: Save sandbox_info to project database if project ID provided
+    if (projectId) {
+      try {
+        console.log(
+          `[V1 Sandbox API] Saving sandbox_info to project ${projectId}...`
+        );
+
+        // Import auth and queries here to avoid circular dependencies
+        const { auth } = await import("@/lib/auth");
+        const { projectQueries } = await import("@/lib/db/queries");
+
+        // Get session for authentication
+        const session = await auth.api.getSession({
+          headers: request.headers,
+        });
+
+        if (session) {
+          // Update project with sandbox_info
+          await projectQueries.updateSandboxInfo(
+            projectId,
+            session.user.id,
+            sandboxInfo
+          );
+          console.log(
+            `[V1 Sandbox API] ✅ Sandbox info saved to project ${projectId}`
+          );
+        } else {
+          console.warn(
+            "[V1 Sandbox API] ⚠️ No session found, cannot save sandbox_info to project"
+          );
+        }
+      } catch (dbError) {
+        console.error(
+          `[V1 Sandbox API] ❌ Failed to save sandbox_info to project ${projectId}:`,
+          dbError
+        );
+        // Don't fail the entire request if DB update fails
+      }
+    } else {
+      console.log(
+        "[V1 Sandbox API] No project ID provided, skipping database update"
+      );
+    }
+
     return NextResponse.json({
       success: true,
       sandboxId,
       url: `https://${host}`,
+      sandbox_info: sandboxInfo,
       message: "Vite React sandbox created and initialized successfully",
       version: "v1",
     });
