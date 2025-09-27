@@ -215,6 +215,12 @@ export class ChatManager {
       throw new Error("No active chat or project");
     }
 
+    // Guard: Prevent duplicate calls if already sending a message
+    if (this.isSendingMessage) {
+      console.log("[ChatManager] Already sending a message, ignoring duplicate call");
+      return;
+    }
+
     this.isSendingMessage = true;
     this.error = null;
 
@@ -417,8 +423,16 @@ export class ChatManager {
   }
 
   // Apply generated code to sandbox (similar to existing implementation)
+  private isApplyingCode: boolean = false;
+
   private async applyGeneratedCode(code: string) {
     console.log("[ChatManager] applyGeneratedCode called with code length:", code.length);
+    
+    // Guard: Prevent duplicate code application
+    if (this.isApplyingCode) {
+      console.log("[ChatManager] Already applying code, ignoring duplicate call");
+      return;
+    }
     
     if (!this.engine.sandbox.currentSandboxId) {
       console.error("[ChatManager] Cannot apply code - no current sandbox ID");
@@ -426,6 +440,7 @@ export class ChatManager {
     }
 
     console.log("[ChatManager] Applying code to sandbox ID:", this.engine.sandbox.currentSandboxId);
+    this.isApplyingCode = true;
 
     // Notify status manager that code application is starting
     if (this.engine.statusManager) {
@@ -480,6 +495,8 @@ export class ChatManager {
       }
     } catch (error) {
       console.error("Error applying code:", error);
+    } finally {
+      this.isApplyingCode = false;
     }
   }
 

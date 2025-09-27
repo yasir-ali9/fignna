@@ -23,6 +23,9 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
   const [selectedModel, setSelectedModel] = useState(modelsConfig.defaultModel);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  
+  // Guard to prevent multiple initial prompt processing
+  const initialPromptProcessedRef = useRef(false);
 
   // Auth guard hook
   const authGuard = useAuthGuard() as any; // Type assertion to access internal method
@@ -90,13 +93,33 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
       }
     };
 
+    // Reset the initial prompt guard when project changes
+    initialPromptProcessedRef.current = false;
+    
     initializeChat();
   }, [engine.projects.currentProject?.id]);
 
-  // Handle initial prompt from MobX state (not URL)
+  // Handle initial prompt from MobX state (not URL) - with guard to prevent multiple executions
   useEffect(() => {
     const processInitialPrompt = async () => {
       const initialPrompt = engine.state.initialPrompt;
+      
+      // Guard: Check if we've already processed an initial prompt
+      if (initialPromptProcessedRef.current) {
+        console.log("[ChatPanel] Initial prompt already processed, skipping...");
+        return;
+      }
+      
+      // Guard: Only process if we have all required conditions
+      if (!initialPrompt || !engine.projects.currentProject) {
+        return;
+      }
+      
+      console.log("[ChatPanel] Processing initial prompt from MobX state:", initialPrompt);
+      
+      // Mark as processing to prevent duplicate calls
+      initialPromptProcessedRef.current = true;
+      
       const storedModel = sessionStorage.getItem("selectedModel");
 
       // Set stored model if available
@@ -105,12 +128,10 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
         sessionStorage.removeItem("selectedModel"); // Clear after use
       }
 
-      if (initialPrompt && engine.projects.currentProject) {
-        console.log("Processing initial prompt from MobX state:", initialPrompt);
-        
+      try {
         // Ensure chat is loaded before processing initial prompt
         if (!engine.chat.hasActiveChat && !engine.chat.isLoadingChats) {
-          console.log("Loading project chats before processing initial prompt...");
+          console.log("[ChatPanel] Loading project chats before processing initial prompt...");
           await engine.chat.loadProjectChats(engine.projects.currentProject.id);
         }
 
@@ -123,26 +144,30 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
         }
 
         if (engine.chat.hasActiveChat) {
-          console.log("Chat is ready, processing initial prompt...");
+          console.log("[ChatPanel] Chat is ready, processing initial prompt...");
           // Clear the prompt from state to prevent re-triggering
           engine.state.clearInitialPrompt();
           // First ensure we have a sandbox, then send the prompt
           await initializeAndSendPrompt(initialPrompt);
         } else {
-          console.error("Chat failed to load within timeout, cannot process initial prompt");
+          console.error("[ChatPanel] Chat failed to load within timeout, cannot process initial prompt");
+          // Reset the guard if we failed, so user can retry
+          initialPromptProcessedRef.current = false;
         }
+      } catch (error) {
+        console.error("[ChatPanel] Error processing initial prompt:", error);
+        // Reset the guard if we failed, so user can retry
+        initialPromptProcessedRef.current = false;
       }
     };
 
-    if (engine.state.initialPrompt) {
+    // Only trigger if we have an initial prompt and haven't processed one yet
+    if (engine.state.initialPrompt && !initialPromptProcessedRef.current) {
       processInitialPrompt();
     }
   }, [
     engine.state.initialPrompt,
     engine.projects.currentProject?.id,
-    engine.chat.hasActiveChat,
-    engine.chat.isLoadingChats,
-    engine.state,
     initializeAndSendPrompt,
   ]);
 
