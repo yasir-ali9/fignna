@@ -76,7 +76,7 @@ const CodeBlock = memo(({ children, className, ...props }: any) => {
     return (
       <div className="my-3 rounded-lg overflow-hidden bg-bk-60">
         {/* Code header */}
-        <div className="flex justify-between items-center px-3 py-1.5 bg-bk-40">
+        <div className="flex justify-between items-center px-3 py-1.5 bg-bk-60">
           <div></div>
           <CopyButton text={codeString} />
         </div>
@@ -535,7 +535,7 @@ const FileBlock = memo(
     return (
       <div className="my-4 rounded-lg overflow-hidden bg-bk-60">
         {/* File header */}
-        <div className="flex justify-between items-center px-3 py-1.5 bg-bk-40">
+        <div className="flex justify-between items-center px-3 py-1.5 bg-bk-60">
           <div className="flex items-center space-x-2">
             <span className="font-mono text-fg-60" style={{ fontSize: "10px" }}>
               {filePath}

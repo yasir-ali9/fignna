@@ -37,6 +37,7 @@ export class ChatManager {
 
   // Messages for active chat
   messages: Message[] = [];
+  messagesLoadedForChat: string | null = null; // Track which chat has loaded messages
 
   // Loading states
   isLoadingChats: boolean = false;
@@ -99,7 +100,9 @@ export class ChatManager {
         console.log(
           `[ChatManager] Switching to existing chat: ${this.chats[0].id}`
         );
-        await this.switchToChat(this.chats[0].id);
+        // For existing chats, check if they have messages before loading
+        const hasMessages = Boolean(this.chats[0].messageCount && this.chats[0].messageCount > 0);
+        await this.switchToChat(this.chats[0].id, hasMessages);
       } else {
         console.log("[ChatManager] No chats found, creating default chat");
         await this.createDefaultChat(projectId);
@@ -155,7 +158,8 @@ export class ChatManager {
       console.log(`[ChatManager] Chat created successfully: ${newChat.id}`);
 
       this.chats.unshift(newChat);
-      await this.switchToChat(newChat.id);
+      // Don't load messages for newly created chat (it's empty)
+      await this.switchToChat(newChat.id, false);
 
       this.isCreatingChat = false;
       return newChat;
@@ -168,14 +172,29 @@ export class ChatManager {
   }
 
   // Switch to a different chat
-  async switchToChat(chatId: string) {
+  async switchToChat(chatId: string, loadMessages: boolean = true) {
     const chat = this.chats.find((c) => c.id === chatId);
     if (!chat) {
       throw new Error("Chat not found");
     }
 
+    // Only clear messages if we're switching to a different chat that has loaded messages
+    // Don't clear if we're setting up the same chat or if no messages have been loaded yet
+    const isDifferentChat = this.activeChat?.id !== chatId;
+    const hasLoadedMessages = this.messagesLoadedForChat !== null;
+    
+    if (isDifferentChat && hasLoadedMessages) {
+      console.log(`[ChatManager] Switching from chat ${this.activeChat?.id} to ${chatId}, clearing messages`);
+      this.messages = [];
+      this.messagesLoadedForChat = null;
+    }
+
     this.activeChat = chat;
-    await this.loadChatMessages(chatId);
+    
+    // Only load messages if explicitly requested (default: true for backward compatibility)
+    if (loadMessages) {
+      await this.loadChatMessages(chatId);
+    }
 
     // TODO: Update project's active chat when activeChatId is added to the project schema
     // For now, we just track the active chat in memory without persisting it
@@ -202,10 +221,20 @@ export class ChatManager {
         updatedAt: new Date(msg.updatedAt),
       }));
 
+      // Track that messages have been loaded for this chat
+      this.messagesLoadedForChat = chatId;
       this.isLoadingMessages = false;
     } catch (error) {
       this.error = error instanceof Error ? error.message : "Unknown error";
       this.isLoadingMessages = false;
+    }
+  }
+
+  // Reload messages for the currently active chat
+  async reloadActiveMessages() {
+    if (this.activeChat) {
+      console.log(`[ChatManager] Reloading messages for active chat: ${this.activeChat.id}`);
+      await this.loadChatMessages(this.activeChat.id);
     }
   }
 
@@ -332,7 +361,7 @@ export class ChatManager {
                 console.log("[ChatManager] Generated code length:", fullResponse.trim().length);
                 console.log("[ChatManager] Current sandbox ID:", this.engine.sandbox.currentSandboxId);
                 console.log("[ChatManager] Current sandbox object:", this.engine.sandbox.currentSandbox);
-                
+
                 if (
                   fullResponse.trim() &&
                   this.engine.sandbox.currentSandboxId
@@ -389,7 +418,13 @@ export class ChatManager {
       }
 
       // Reload messages to get the actual saved messages from database
-      await this.loadChatMessages(this.activeChat.id);
+      // Only reload if we haven't loaded messages from database yet (to avoid duplicate API calls)
+      if (this.messagesLoadedForChat !== this.activeChat.id) {
+        console.log("[ChatManager] Loading messages from database after message completion");
+        await this.loadChatMessages(this.activeChat.id);
+      } else {
+        console.log("[ChatManager] Messages already loaded from database, skipping reload");
+      }
     } catch (error) {
       this.error = error instanceof Error ? error.message : "Unknown error";
 
@@ -427,13 +462,13 @@ export class ChatManager {
 
   private async applyGeneratedCode(code: string) {
     console.log("[ChatManager] applyGeneratedCode called with code length:", code.length);
-    
+
     // Guard: Prevent duplicate code application
     if (this.isApplyingCode) {
       console.log("[ChatManager] Already applying code, ignoring duplicate call");
       return;
     }
-    
+
     if (!this.engine.sandbox.currentSandboxId) {
       console.error("[ChatManager] Cannot apply code - no current sandbox ID");
       return;
@@ -603,6 +638,7 @@ export class ChatManager {
     this.chats = [];
     this.activeChat = null;
     this.messages = [];
+    this.messagesLoadedForChat = null;
     this.error = null;
   }
 }

@@ -23,7 +23,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
   const [selectedModel, setSelectedModel] = useState(modelsConfig.defaultModel);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  
+
   // Guard to prevent multiple initial prompt processing
   const initialPromptProcessedRef = useRef(false);
 
@@ -48,7 +48,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
         // Wait for sandbox to be ready before sending prompt
         if (!isSandboxReady()) {
           console.log("[ChatPanel] Waiting for sandbox to be ready before sending prompt...");
-          
+
           // Check if we need to create a sandbox
           if (!engine.sandbox.currentSandbox && !engine.sandbox.isCreating) {
             console.log("[ChatPanel] No sandbox found, creating one...");
@@ -58,7 +58,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           // Wait for sandbox to be ready with timeout
           let attempts = 0;
           const maxAttempts = 30; // 30 seconds timeout
-          
+
           while (!isSandboxReady() && attempts < maxAttempts) {
             await new Promise(resolve => setTimeout(resolve, 1000));
             attempts++;
@@ -95,7 +95,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
 
     // Reset the initial prompt guard when project changes
     initialPromptProcessedRef.current = false;
-    
+
     initializeChat();
   }, [engine.projects.currentProject?.id]);
 
@@ -103,23 +103,23 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
   useEffect(() => {
     const processInitialPrompt = async () => {
       const initialPrompt = engine.state.initialPrompt;
-      
+
       // Guard: Check if we've already processed an initial prompt
       if (initialPromptProcessedRef.current) {
         console.log("[ChatPanel] Initial prompt already processed, skipping...");
         return;
       }
-      
+
       // Guard: Only process if we have all required conditions
       if (!initialPrompt || !engine.projects.currentProject) {
         return;
       }
-      
+
       console.log("[ChatPanel] Processing initial prompt from MobX state:", initialPrompt);
-      
+
       // Mark as processing to prevent duplicate calls
       initialPromptProcessedRef.current = true;
-      
+
       const storedModel = sessionStorage.getItem("selectedModel");
 
       // Set stored model if available
@@ -135,12 +135,10 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           await engine.chat.loadProjectChats(engine.projects.currentProject.id);
         }
 
-        // Wait for chat to be ready
-        let attempts = 0;
-        const maxAttempts = 10; // 10 seconds timeout
-        while (!engine.chat.hasActiveChat && attempts < maxAttempts) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          attempts++;
+        // Wait for chat to be ready (no timeout - wait as long as needed)
+        while (!engine.chat.hasActiveChat && !engine.chat.error) {
+          console.log("[ChatPanel] Waiting for chat to be ready...");
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         if (engine.chat.hasActiveChat) {
@@ -149,8 +147,8 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           engine.state.clearInitialPrompt();
           // First ensure we have a sandbox, then send the prompt
           await initializeAndSendPrompt(initialPrompt);
-        } else {
-          console.error("[ChatPanel] Chat failed to load within timeout, cannot process initial prompt");
+        } else if (engine.chat.error) {
+          console.error("[ChatPanel] Chat failed to load due to error:", engine.chat.error);
           // Reset the guard if we failed, so user can retry
           initialPromptProcessedRef.current = false;
         }
@@ -313,7 +311,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           {engine.chat.messages.length === 0 && (
             <div className="flex items-center justify-start h-full">
               <div className="text-fg-60 text-[13px]">
-                Hello! I&apos;m fignna.<br/> I can help you build React apps with AI.
+                Hello! I&apos;m fignna.<br /> I can help you build React apps with AI.
               </div>
             </div>
           )}
@@ -321,18 +319,15 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           {engine.chat.messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
+              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
+                }`}
             >
               <div
-                className={`${
-                  message.role === "user" ? "max-w-[85%]" : "w-full"
-                } rounded-lg ${
-                  message.role === "user"
+                className={`${message.role === "user" ? "max-w-[85%]" : "w-full"
+                  } rounded-lg ${message.role === "user"
                     ? "bg-bk-40 text-fg-50 p-3"
                     : "bg-transparent text-fg-50"
-                }`}
+                  }`}
               >
                 {message.role === "user" ? (
                   <div className="text-[11px] whitespace-pre-wrap">
@@ -414,8 +409,8 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
                   !engine.sandbox.currentSandbox
                     ? "Create a sandbox from the dropdown above..."
                     : engine.chat.isSendingMessage
-                    ? "Please wait..."
-                    : "Describe what you want to build..."
+                      ? "Please wait..."
+                      : "Describe what you want to build..."
                 }
                 rows={1}
                 className="w-full bg-transparent text-fg-50 placeholder-fg-60
