@@ -387,7 +387,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           ))}
 
           {/* Loading animation - show only when waiting for response to start */}
-          {engine.chat.isSendingMessage && !engine.chat.isStreaming && (
+          {engine.chat.isSendingMessage && (
             <div className="flex justify-start">
               <MessageLoading />
             </div>

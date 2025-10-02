@@ -185,8 +185,9 @@ const ImageRenderer = memo(({ src, alt, ...props }: any) => {
       <img
         src={src}
         alt={alt}
-        className={`${imageState === "loaded" ? "block" : "hidden"
-          } max-w-full rounded-lg border border-bd-50`}
+        className={`${
+          imageState === "loaded" ? "block" : "hidden"
+        } max-w-full rounded-lg border border-bd-50`}
         onLoad={handleImageLoad}
         onError={handleImageError}
         {...props}
@@ -542,8 +543,8 @@ const FileBlock = memo(
             </span>
             {isPartial && (
               <div className="flex items-center space-x-1">
-                <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
-                <span className="text-fg-60 text-xs">Streaming...</span>
+                {/* <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div> */}
+                {/* <span className="text-fg-60 text-xs">Streaming...</span> */}
               </div>
             )}
           </div>
