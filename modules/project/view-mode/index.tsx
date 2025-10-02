@@ -9,6 +9,7 @@ import { ViewMode } from "@/lib/stores/editor/state";
 import { CodePanel, SplitView } from "@/modules/project/code-mode";
 // Import the reusable turning-on widget
 import TurningOn, { LoadingStates } from "@/modules/project/widgets/turning-on";
+import { SeamlessPreview } from "@/modules/project/widgets/auto-refresh-iframe";
 
 // Project type matching the V1 API
 interface Project {
@@ -48,33 +49,31 @@ export const ViewModeComponent = observer(({ project }: ViewModeProps) => {
       return (
         <div className="flex-1 relative overflow-hidden min-h-0 min-w-0 bg-bk-60">
           {/* Show TurningOn widget for syncing, restarting, or creating states */}
-          {(engine.projects.isSyncing || 
-            engine.sandbox.isRestarting || 
-            engine.sandbox.isCreating || 
-            engine.sandbox.currentSandbox?.status === "creating") ? (
-            
-            <TurningOn 
+          {engine.projects.isSyncing ||
+          engine.sandbox.isRestarting ||
+          engine.sandbox.isCreating ||
+          engine.sandbox.currentSandbox?.status === "creating" ? (
+            <TurningOn
               title={
-                engine.sandbox.isRestarting 
+                engine.sandbox.isRestarting
                   ? LoadingStates.RESTARTING.title
-                  : engine.projects.isSyncing 
-                    ? LoadingStates.SYNCING.title
-                    : LoadingStates.SANDBOX_CREATION.title
+                  : engine.projects.isSyncing
+                  ? LoadingStates.SYNCING.title
+                  : LoadingStates.SANDBOX_CREATION.title
               }
               subtitle={
-                engine.sandbox.isRestarting 
+                engine.sandbox.isRestarting
                   ? LoadingStates.RESTARTING.subtitle
-                  : engine.projects.isSyncing 
-                    ? LoadingStates.SYNCING.subtitle
-                    : LoadingStates.SANDBOX_CREATION.subtitle
+                  : engine.projects.isSyncing
+                  ? LoadingStates.SYNCING.subtitle
+                  : LoadingStates.SANDBOX_CREATION.subtitle
               }
             />
-          ) : (engine.sandbox.previewUrl || project.previewUrl) ? (
-            <iframe
+          ) : engine.sandbox.previewUrl || project.previewUrl ? (
+            <SeamlessPreview
               src={engine.sandbox.previewUrl || project.previewUrl || ""}
               className="w-full h-full border-0"
               title="Live Preview"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
             />
           ) : (
             <div className="h-full flex items-center justify-center text-center">

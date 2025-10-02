@@ -133,6 +133,10 @@ export const CodeMirrorEditor = observer(() => {
             engine.files.markFileSaved(tab.id);
           }
 
+          // Trigger seamless preview refresh after file save
+          console.log("🔄 Triggering seamless preview refresh after file save");
+          window.dispatchEvent(new CustomEvent("file-saved"));
+
           console.log("✅ File save operation completed");
         } catch (error) {
           console.error("❌ Failed to save file:", error);
@@ -143,7 +147,8 @@ export const CodeMirrorEditor = observer(() => {
             error: error,
           });
           engine.files.setError(
-            `Failed to save file: ${error instanceof Error ? error.message : "Unknown error"
+            `Failed to save file: ${
+              error instanceof Error ? error.message : "Unknown error"
             }`
           );
         } finally {

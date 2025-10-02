@@ -101,7 +101,9 @@ export class ChatManager {
           `[ChatManager] Switching to existing chat: ${this.chats[0].id}`
         );
         // For existing chats, check if they have messages before loading
-        const hasMessages = Boolean(this.chats[0].messageCount && this.chats[0].messageCount > 0);
+        const hasMessages = Boolean(
+          this.chats[0].messageCount && this.chats[0].messageCount > 0
+        );
         await this.switchToChat(this.chats[0].id, hasMessages);
       } else {
         console.log("[ChatManager] No chats found, creating default chat");
@@ -182,15 +184,17 @@ export class ChatManager {
     // Don't clear if we're setting up the same chat or if no messages have been loaded yet
     const isDifferentChat = this.activeChat?.id !== chatId;
     const hasLoadedMessages = this.messagesLoadedForChat !== null;
-    
+
     if (isDifferentChat && hasLoadedMessages) {
-      console.log(`[ChatManager] Switching from chat ${this.activeChat?.id} to ${chatId}, clearing messages`);
+      console.log(
+        `[ChatManager] Switching from chat ${this.activeChat?.id} to ${chatId}, clearing messages`
+      );
       this.messages = [];
       this.messagesLoadedForChat = null;
     }
 
     this.activeChat = chat;
-    
+
     // Only load messages if explicitly requested (default: true for backward compatibility)
     if (loadMessages) {
       await this.loadChatMessages(chatId);
@@ -233,7 +237,9 @@ export class ChatManager {
   // Reload messages for the currently active chat
   async reloadActiveMessages() {
     if (this.activeChat) {
-      console.log(`[ChatManager] Reloading messages for active chat: ${this.activeChat.id}`);
+      console.log(
+        `[ChatManager] Reloading messages for active chat: ${this.activeChat.id}`
+      );
       await this.loadChatMessages(this.activeChat.id);
     }
   }
@@ -246,7 +252,9 @@ export class ChatManager {
 
     // Guard: Prevent duplicate calls if already sending a message
     if (this.isSendingMessage) {
-      console.log("[ChatManager] Already sending a message, ignoring duplicate call");
+      console.log(
+        "[ChatManager] Already sending a message, ignoring duplicate call"
+      );
       return;
     }
 
@@ -357,23 +365,39 @@ export class ChatManager {
                 }
 
                 // Auto-apply the generated code
-                console.log("[ChatManager] Code generation complete, checking if we can apply...");
-                console.log("[ChatManager] Generated code length:", fullResponse.trim().length);
-                console.log("[ChatManager] Current sandbox ID:", this.engine.sandbox.currentSandboxId);
-                console.log("[ChatManager] Current sandbox object:", this.engine.sandbox.currentSandbox);
+                console.log(
+                  "[ChatManager] Code generation complete, checking if we can apply..."
+                );
+                console.log(
+                  "[ChatManager] Generated code length:",
+                  fullResponse.trim().length
+                );
+                console.log(
+                  "[ChatManager] Current sandbox ID:",
+                  this.engine.sandbox.currentSandboxId
+                );
+                console.log(
+                  "[ChatManager] Current sandbox object:",
+                  this.engine.sandbox.currentSandbox
+                );
 
                 if (
                   fullResponse.trim() &&
                   this.engine.sandbox.currentSandboxId
                 ) {
-                  console.log("[ChatManager] Applying generated code to sandbox...");
+                  console.log(
+                    "[ChatManager] Applying generated code to sandbox..."
+                  );
                   await this.applyGeneratedCode(fullResponse);
                 } else {
-                  console.warn("[ChatManager] Cannot apply code - missing requirements:", {
-                    hasCode: !!fullResponse.trim(),
-                    hasSandboxId: !!this.engine.sandbox.currentSandboxId,
-                    sandboxStatus: this.engine.sandbox.currentSandbox?.status
-                  });
+                  console.warn(
+                    "[ChatManager] Cannot apply code - missing requirements:",
+                    {
+                      hasCode: !!fullResponse.trim(),
+                      hasSandboxId: !!this.engine.sandbox.currentSandboxId,
+                      sandboxStatus: this.engine.sandbox.currentSandbox?.status,
+                    }
+                  );
                 }
               } else if (data.type === "error") {
                 // Update message with error
@@ -420,10 +444,14 @@ export class ChatManager {
       // Reload messages to get the actual saved messages from database
       // Only reload if we haven't loaded messages from database yet (to avoid duplicate API calls)
       if (this.messagesLoadedForChat !== this.activeChat.id) {
-        console.log("[ChatManager] Loading messages from database after message completion");
+        console.log(
+          "[ChatManager] Loading messages from database after message completion"
+        );
         await this.loadChatMessages(this.activeChat.id);
       } else {
-        console.log("[ChatManager] Messages already loaded from database, skipping reload");
+        console.log(
+          "[ChatManager] Messages already loaded from database, skipping reload"
+        );
       }
     } catch (error) {
       this.error = error instanceof Error ? error.message : "Unknown error";
@@ -460,12 +488,45 @@ export class ChatManager {
   // Apply generated code to sandbox (similar to existing implementation)
   private isApplyingCode: boolean = false;
 
+  // Trigger seamless preview refresh by dispatching custom events
+  private triggerPreviewRefresh() {
+    console.log("[ChatManager] 🔄 Dispatching seamless preview refresh event");
+
+    // Dispatch event immediately
+    const event = new CustomEvent("code-applied", {
+      detail: {
+        timestamp: Date.now(),
+        source: "chat-manager",
+      },
+    });
+    window.dispatchEvent(event);
+    console.log("[ChatManager] ✅ code-applied event dispatched");
+
+    // Also dispatch with a small delay to ensure all components are ready
+    setTimeout(() => {
+      console.log("[ChatManager] 🔄 Dispatching delayed preview refresh event");
+      const delayedEvent = new CustomEvent("code-applied", {
+        detail: {
+          timestamp: Date.now(),
+          source: "chat-manager-delayed",
+        },
+      });
+      window.dispatchEvent(delayedEvent);
+      console.log("[ChatManager] ✅ Delayed code-applied event dispatched");
+    }, 1000); // Increased delay to 1 second
+  }
+
   private async applyGeneratedCode(code: string) {
-    console.log("[ChatManager] applyGeneratedCode called with code length:", code.length);
+    console.log(
+      "[ChatManager] applyGeneratedCode called with code length:",
+      code.length
+    );
 
     // Guard: Prevent duplicate code application
     if (this.isApplyingCode) {
-      console.log("[ChatManager] Already applying code, ignoring duplicate call");
+      console.log(
+        "[ChatManager] Already applying code, ignoring duplicate call"
+      );
       return;
     }
 
@@ -474,7 +535,10 @@ export class ChatManager {
       return;
     }
 
-    console.log("[ChatManager] Applying code to sandbox ID:", this.engine.sandbox.currentSandboxId);
+    console.log(
+      "[ChatManager] Applying code to sandbox ID:",
+      this.engine.sandbox.currentSandboxId
+    );
     this.isApplyingCode = true;
 
     // Notify status manager that code application is starting
@@ -521,6 +585,12 @@ export class ChatManager {
 
                 // Files are now auto-saved by the apply API after 3 seconds
                 // No need to manually save here to avoid race conditions and empty file issues
+
+                // Trigger preview refresh when code application completes
+                console.log(
+                  "[ChatManager] Code application complete, triggering preview refresh"
+                );
+                this.triggerPreviewRefresh();
               }
             } catch {
               // Ignore parse errors

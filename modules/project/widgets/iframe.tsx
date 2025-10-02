@@ -63,8 +63,11 @@ export const Iframe = observer(
     const [iframeLoading, setIframeLoading] = useState(true);
     const [hasError, setHasError] = useState(false);
     const [isCommReady, setIsCommReady] = useState(false);
+    const [refreshKey, setRefreshKey] = useState(0);
     const iframeRef = useRef<HTMLIFrameElement>(null);
     const communicationRef = useRef<IframeCommunication | null>(null);
+    const lastRefreshTime = useRef<number>(0);
+    const lastKnownUrl = useRef<string>("");
 
     // Reset loading states when URL changes
     useEffect(() => {
@@ -74,6 +77,116 @@ export const Iframe = observer(
         setIsCommReady(false);
       }
     }, [url]);
+
+    // Seamless refresh mechanism - only refresh on actual code changes
+    const seamlessRefresh = useCallback(() => {
+      const now = Date.now();
+      // Debounce rapid refresh calls (minimum 1 second between refreshes)
+      if (now - lastRefreshTime.current < 1000) {
+        console.log("[Iframe] Debouncing rapid refresh calls");
+        return;
+      }
+
+      console.log("[Iframe] Seamlessly refreshing preview...");
+      lastRefreshTime.current = now;
+      setRefreshKey((prev) => prev + 1);
+      // Don't set loading state for seamless experience
+    }, []);
+
+    // Listen for code change events and route changes
+    useEffect(() => {
+      const handleCodeChange = (event: CustomEvent) => {
+        console.log(
+          "[Iframe] 🎯 Code change detected:",
+          event.type,
+          "for URL:",
+          url
+        );
+        console.log("[Iframe] Event detail:", event.detail);
+        seamlessRefresh();
+      };
+
+      const handleRouteChange = (event: CustomEvent) => {
+        console.log(
+          "[Iframe] 🎯 Route change detected:",
+          event.detail?.route,
+          "for URL:",
+          url
+        );
+
+        // Update iframe src with new route
+        if (event.detail?.fullUrl && iframeRef.current) {
+          console.log("[Iframe] Updating iframe src to:", event.detail.fullUrl);
+          iframeRef.current.src = event.detail.fullUrl;
+        }
+      };
+
+      // Listen to code change events
+      window.addEventListener(
+        "code-applied",
+        handleCodeChange as EventListener
+      );
+      window.addEventListener("file-saved", handleCodeChange as EventListener);
+      window.addEventListener(
+        "sandbox-synced",
+        handleCodeChange as EventListener
+      );
+
+      // Listen to route change events
+      window.addEventListener(
+        "route-changed",
+        handleRouteChange as EventListener
+      );
+
+      return () => {
+        window.removeEventListener(
+          "code-applied",
+          handleCodeChange as EventListener
+        );
+        window.removeEventListener(
+          "file-saved",
+          handleCodeChange as EventListener
+        );
+        window.removeEventListener(
+          "sandbox-synced",
+          handleCodeChange as EventListener
+        );
+        window.removeEventListener(
+          "route-changed",
+          handleRouteChange as EventListener
+        );
+      };
+    }, [seamlessRefresh]);
+
+    // Listen for postMessage from iframe about URL changes
+    useEffect(() => {
+      const handleMessage = (event: MessageEvent) => {
+        // Verify the message is about URL changes
+        if (event.data && event.data.type === "url-changed" && event.data.url) {
+          console.log(
+            "[Iframe] Received URL change from iframe:",
+            event.data.url
+          );
+
+          if (event.data.url !== lastKnownUrl.current) {
+            lastKnownUrl.current = event.data.url;
+
+            // Dispatch iframe navigation event
+            window.dispatchEvent(
+              new CustomEvent("iframe-navigated", {
+                detail: { url: event.data.url },
+              })
+            );
+          }
+        }
+      };
+
+      window.addEventListener("message", handleMessage);
+
+      return () => {
+        window.removeEventListener("message", handleMessage);
+      };
+    }, []);
 
     const setupCommunication = useCallback(() => {
       if (!enableCommunication || !iframeRef.current) return;
@@ -134,11 +247,16 @@ export const Iframe = observer(
       setIframeLoading(false);
       setHasError(false);
 
+      // Update last known URL on load
+      if (url) {
+        lastKnownUrl.current = url;
+      }
+
       if (enableCommunication) {
         // Wait a bit for iframe to fully load before setting up communication
         setTimeout(setupCommunication, 500);
       }
-    }, [enableCommunication, setupCommunication]);
+    }, [enableCommunication, setupCommunication, url]);
 
     const handleIframeError = useCallback(() => {
       setIframeLoading(false);
@@ -235,10 +353,7 @@ export const Iframe = observer(
         <div className={`${className}`}>
           {isLoading ? (
             showTurningOn && turningOnTitle ? (
-              <TurningOn
-                title={turningOnTitle}
-                subtitle={turningOnSubtitle}
-              />
+              <TurningOn title={turningOnTitle} subtitle={turningOnSubtitle} />
             ) : (
               <SandboxLoading />
             )
@@ -314,10 +429,7 @@ export const Iframe = observer(
         {iframeLoading && (
           <div className="absolute inset-0 bg-white z-10">
             {showTurningOn && turningOnTitle ? (
-              <TurningOn
-                title={turningOnTitle}
-                subtitle={turningOnSubtitle}
-              />
+              <TurningOn title={turningOnTitle} subtitle={turningOnSubtitle} />
             ) : (
               <SandboxLoading />
             )}
@@ -328,8 +440,9 @@ export const Iframe = observer(
         {enableCommunication && !iframeLoading && (
           <div className="absolute top-2 right-2 z-20">
             <div
-              className={`w-2 h-2 rounded-full ${isCommReady ? "bg-green-400" : "bg-gray-400"
-                }`}
+              className={`w-2 h-2 rounded-full ${
+                isCommReady ? "bg-green-400" : "bg-gray-400"
+              }`}
               title={
                 isCommReady
                   ? "Communication ready"
@@ -339,8 +452,9 @@ export const Iframe = observer(
           </div>
         )}
 
-        {/* Iframe */}
+        {/* Iframe with refresh key for force reloading */}
         <iframe
+          key={refreshKey}
           ref={iframeRef}
           src={url}
           className="w-full h-full border-0"

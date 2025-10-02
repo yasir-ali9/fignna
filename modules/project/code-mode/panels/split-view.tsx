@@ -8,6 +8,7 @@ import { CodeMirrorEditor } from "../editor-core/codemirror-editor";
 import { Terminal } from "@/modules/project/common/terminal/terminal";
 import { TerminalIcon, ChevronDown } from "lucide-react";
 import TurningOn, { LoadingStates } from "@/modules/project/widgets/turning-on";
+import { SeamlessPreview } from "@/modules/project/widgets/auto-refresh-iframe";
 
 interface SplitViewProps {
   projectId: string;
@@ -24,7 +25,13 @@ interface SplitViewProps {
  * Terminal appears only on the editor side when enabled
  */
 export const SplitView = observer(
-  ({ projectId, previewUrl, className, isTerminalOpen, onTerminalClose }: SplitViewProps) => {
+  ({
+    projectId,
+    previewUrl,
+    className,
+    isTerminalOpen,
+    onTerminalClose,
+  }: SplitViewProps) => {
     const engine = useEditorEngine();
     // Percentage-based width for responsive resizing
     const [leftWidthPercent, setLeftWidthPercent] = useState(50); // 50% initial split
@@ -120,8 +127,9 @@ export const SplitView = observer(
 
         {/* Resize Handle - Styled like ResizablePanel */}
         <div
-          className={`w-1 cursor-col-resize hover:bg-ac-01 transition-colors flex-shrink-0 ${isResizing ? "bg-ac-01" : "bg-transparent"
-            }`}
+          className={`w-1 cursor-col-resize hover:bg-ac-01 transition-colors flex-shrink-0 ${
+            isResizing ? "bg-ac-01" : "bg-transparent"
+          }`}
           onMouseDown={handleMouseDown}
         />
 
@@ -131,19 +139,11 @@ export const SplitView = observer(
           style={{ width: `${100 - leftWidthPercent}%` }}
         >
           {engine.sandbox.previewUrl || previewUrl ? (
-            <div className="h-full relative">
-              <iframe
-                src={engine.sandbox.previewUrl || previewUrl || ""}
-                className="w-full h-full border-0"
-                title="Live Preview"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-              />
-
-              {/* Loading Overlay */}
-              <div className="absolute inset-0 bg-bk-40 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300">
-                <div className="text-fg-60">Loading preview...</div>
-              </div>
-            </div>
+            <SeamlessPreview
+              src={engine.sandbox.previewUrl || previewUrl || ""}
+              className="w-full h-full border-0"
+              title="Live Preview"
+            />
           ) : (
             <div className="h-full flex items-center justify-center text-center">
               <div>

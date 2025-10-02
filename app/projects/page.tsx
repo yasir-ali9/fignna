@@ -53,7 +53,6 @@ function ProjectsList() {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        console.log("[Projects] Fetched projects:", data.data.projects);
         setProjects(data.data.projects);
       } else {
         console.error("[Projects] Failed to fetch projects:", data);

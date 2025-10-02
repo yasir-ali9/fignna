@@ -6,6 +6,8 @@ import { observer } from "mobx-react-lite";
 import { CodePanel } from "@/modules/project/code-mode";
 // Import the reusable turning-on widget
 import TurningOn, { LoadingStates } from "@/modules/project/widgets/turning-on";
+import { SeamlessPreview } from "@/modules/project/widgets/auto-refresh-iframe";
+
 // Mock project type for now
 interface Project {
   id: string;
@@ -40,19 +42,20 @@ export const CodeOrViewPanel = observer(
           }
 
           // Show TurningOn widget for syncing, restarting, or creating states
-          if (editorEngine.projects.isSyncing || 
-              editorEngine.sandbox.isRestarting || 
-              editorEngine.sandbox.isCreating || 
-              editorEngine.sandbox.currentSandbox?.status === "creating") {
-            
-            const loadingState = editorEngine.sandbox.isRestarting 
-              ? LoadingStates.RESTARTING 
-              : editorEngine.projects.isSyncing 
-                ? LoadingStates.SYNCING
-                : LoadingStates.SANDBOX_CREATION;
-            
+          if (
+            editorEngine.projects.isSyncing ||
+            editorEngine.sandbox.isRestarting ||
+            editorEngine.sandbox.isCreating ||
+            editorEngine.sandbox.currentSandbox?.status === "creating"
+          ) {
+            const loadingState = editorEngine.sandbox.isRestarting
+              ? LoadingStates.RESTARTING
+              : editorEngine.projects.isSyncing
+              ? LoadingStates.SYNCING
+              : LoadingStates.SANDBOX_CREATION;
+
             return (
-              <TurningOn 
+              <TurningOn
                 title={loadingState.title}
                 subtitle={loadingState.subtitle}
               />
@@ -62,15 +65,10 @@ export const CodeOrViewPanel = observer(
           // Show iframe if preview URL is available
           if (previewUrl) {
             return (
-              <iframe
+              <SeamlessPreview
                 src={previewUrl}
                 className="w-full h-full border-0"
                 title="Live Preview"
-                sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-                onLoad={() =>
-                  console.log("[ViewMode] Iframe loaded successfully")
-                }
-                onError={(e) => console.error("[ViewMode] Iframe error:", e)}
               />
             );
           }

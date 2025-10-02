@@ -9,6 +9,7 @@ import { Tooltip } from "../../../../components/tooltip";
 import { SandboxDropdown } from "../../widgets/sandbox-dropdown";
 import { MoreOptionsDropdown } from "../../widgets/more-options-dropdown";
 import { TicTacToeGame } from "../../widgets/tic-tac-toe-game";
+import { AddressBar } from "./address-bar";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { AppMode, ViewModeTab, ViewMode } from "@/lib/stores/editor/state";
 
@@ -32,7 +33,7 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    
+
     // Limit to 30 characters including spaces
     if (newValue.length <= 30) {
       engine.state.setProjectName(newValue);
@@ -176,6 +177,11 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
                 "Unnamed"}
             </button>
           )}
+        </div>
+
+        {/* Address Bar */}
+        <div className="ml-4 flex items-center h-full">
+          <AddressBar />
         </div>
       </div>
 
