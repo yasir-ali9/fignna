@@ -10,6 +10,7 @@ import { PackageProgress } from "./package-progress";
 import { modelsConfig } from "@/lib/config/models.config";
 import { useAuthGuard } from "@/lib/hooks/use-auth-guard";
 import AuthModal from "@/modules/auth/auth-modal";
+import MessageLoading from "./message-loading";
 
 interface ChatPanelProps {
   placeholder?: string;
@@ -47,7 +48,9 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
       try {
         // Wait for sandbox to be ready before sending prompt
         if (!isSandboxReady()) {
-          console.log("[ChatPanel] Waiting for sandbox to be ready before sending prompt...");
+          console.log(
+            "[ChatPanel] Waiting for sandbox to be ready before sending prompt..."
+          );
 
           // Check if we need to create a sandbox
           if (!engine.sandbox.currentSandbox && !engine.sandbox.isCreating) {
@@ -60,7 +63,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           const maxAttempts = 30; // 30 seconds timeout
 
           while (!isSandboxReady() && attempts < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 1000));
             attempts++;
           }
 
@@ -74,11 +77,19 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
       } catch (error) {
         console.error("Failed to initialize sandbox for chat:", error);
         // Still try to send the prompt as fallback
-        console.log("[ChatPanel] Attempting to send prompt without sandbox readiness check...");
+        console.log(
+          "[ChatPanel] Attempting to send prompt without sandbox readiness check..."
+        );
         await engine.chat.sendMessage(prompt, selectedModel);
       }
     },
-    [engine.sandbox, engine.chat, engine.projects, selectedModel, isSandboxReady]
+    [
+      engine.sandbox,
+      engine.chat,
+      engine.projects,
+      selectedModel,
+      isSandboxReady,
+    ]
   );
 
   // Initialize chat when project loads (with guard to prevent duplicate calls)
@@ -106,7 +117,9 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
 
       // Guard: Check if we've already processed an initial prompt
       if (initialPromptProcessedRef.current) {
-        console.log("[ChatPanel] Initial prompt already processed, skipping...");
+        console.log(
+          "[ChatPanel] Initial prompt already processed, skipping..."
+        );
         return;
       }
 
@@ -115,7 +128,10 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
         return;
       }
 
-      console.log("[ChatPanel] Processing initial prompt from MobX state:", initialPrompt);
+      console.log(
+        "[ChatPanel] Processing initial prompt from MobX state:",
+        initialPrompt
+      );
 
       // Mark as processing to prevent duplicate calls
       initialPromptProcessedRef.current = true;
@@ -131,24 +147,31 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
       try {
         // Ensure chat is loaded before processing initial prompt
         if (!engine.chat.hasActiveChat && !engine.chat.isLoadingChats) {
-          console.log("[ChatPanel] Loading project chats before processing initial prompt...");
+          console.log(
+            "[ChatPanel] Loading project chats before processing initial prompt..."
+          );
           await engine.chat.loadProjectChats(engine.projects.currentProject.id);
         }
 
         // Wait for chat to be ready (no timeout - wait as long as needed)
         while (!engine.chat.hasActiveChat && !engine.chat.error) {
           console.log("[ChatPanel] Waiting for chat to be ready...");
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         if (engine.chat.hasActiveChat) {
-          console.log("[ChatPanel] Chat is ready, processing initial prompt...");
+          console.log(
+            "[ChatPanel] Chat is ready, processing initial prompt..."
+          );
           // Clear the prompt from state to prevent re-triggering
           engine.state.clearInitialPrompt();
           // First ensure we have a sandbox, then send the prompt
           await initializeAndSendPrompt(initialPrompt);
         } else if (engine.chat.error) {
-          console.error("[ChatPanel] Chat failed to load due to error:", engine.chat.error);
+          console.error(
+            "[ChatPanel] Chat failed to load due to error:",
+            engine.chat.error
+          );
           // Reset the guard if we failed, so user can retry
           initialPromptProcessedRef.current = false;
         }
@@ -311,7 +334,8 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           {engine.chat.messages.length === 0 && (
             <div className="flex items-center justify-start h-full">
               <div className="text-fg-60 text-[13px]">
-                Hello! I&apos;m fignna.<br /> I can help you build React apps with AI.
+                Hello! I&apos;m fignna.
+                <br /> I can help you build React apps with AI.
               </div>
             </div>
           )}
@@ -319,15 +343,18 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
           {engine.chat.messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"
-                }`}
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
+              }`}
             >
               <div
-                className={`${message.role === "user" ? "max-w-[85%]" : "w-full"
-                  } rounded-lg ${message.role === "user"
+                className={`${
+                  message.role === "user" ? "max-w-[85%]" : "w-full"
+                } rounded-lg ${
+                  message.role === "user"
                     ? "bg-bk-40 text-fg-50 p-3"
                     : "bg-transparent text-fg-50"
-                  }`}
+                }`}
               >
                 {message.role === "user" ? (
                   <div className="text-[11px] whitespace-pre-wrap">
@@ -339,15 +366,6 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
                     id={message.id}
                     size="default"
                   />
-                )}
-
-                {message.metadata?.status === "streaming" && (
-                  <div className="flex items-center mt-2">
-                    <span className="inline-block w-2 h-2 bg-fg-50 rounded-full animate-pulse mr-1"></span>
-                    <span className="text-[10px] text-fg-60">
-                      Generating...
-                    </span>
-                  </div>
                 )}
 
                 {message.metadata?.status === "failed" && (
@@ -368,21 +386,10 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
             </div>
           ))}
 
-          {engine.chat.isStreaming && (
+          {/* Loading animation - show only when waiting for response to start */}
+          {engine.chat.isSendingMessage && !engine.chat.isStreaming && (
             <div className="flex justify-start">
-              <div className="text-fg-50 p-2 rounded-lg text-xs">
-                <div className="flex items-center space-x-1">
-                  <div className="w-1 h-1 bg-fg-30 rounded-full animate-pulse"></div>
-                  <div
-                    className="w-1 h-1 bg-fg-30 rounded-full animate-pulse"
-                    style={{ animationDelay: "0.2s" }}
-                  ></div>
-                  <div
-                    className="w-1 h-1 bg-fg-30 rounded-full animate-pulse"
-                    style={{ animationDelay: "0.4s" }}
-                  ></div>
-                </div>
-              </div>
+              <MessageLoading />
             </div>
           )}
 
@@ -409,8 +416,8 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
                   !engine.sandbox.currentSandbox
                     ? "Create a sandbox from the dropdown above..."
                     : engine.chat.isSendingMessage
-                      ? "Please wait..."
-                      : "Describe what you want to build..."
+                    ? "Please wait..."
+                    : "Describe what you want to build..."
                 }
                 rows={1}
                 className="w-full bg-transparent text-fg-50 placeholder-fg-60

@@ -350,12 +350,6 @@ export const SandboxDropdown = observer(function SandboxDropdown() {
             className={`absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ${getStatusDotColor()}`}
           ></div>
         </div>
-
-        {/* Status Text */}
-        <div className="text-xs text-fg-60 group-hover:text-fg-50 min-w-0">
-          {getStatusText()}
-        </div>
-
         {/* Chevron Down */}
         <div className="w-3 h-3 text-fg-60 group-hover:text-fg-50 transition-transform duration-200 flex-shrink-0">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">

@@ -83,11 +83,11 @@ export const Iframe = observer(
       const now = Date.now();
       // Debounce rapid refresh calls (minimum 1 second between refreshes)
       if (now - lastRefreshTime.current < 1000) {
-        console.log("[Iframe] Debouncing rapid refresh calls");
+        console.log("Debouncing rapid refresh calls");
         return;
       }
 
-      console.log("[Iframe] Seamlessly refreshing preview...");
+      console.log("Seamlessly refreshing preview...");
       lastRefreshTime.current = now;
       setRefreshKey((prev) => prev + 1);
       // Don't set loading state for seamless experience
@@ -97,18 +97,18 @@ export const Iframe = observer(
     useEffect(() => {
       const handleCodeChange = (event: CustomEvent) => {
         console.log(
-          "[Iframe] 🎯 Code change detected:",
+          "Code change detected:",
           event.type,
           "for URL:",
           url
         );
-        console.log("[Iframe] Event detail:", event.detail);
+        console.log("Event detail:", event.detail);
         seamlessRefresh();
       };
 
       const handleRouteChange = (event: CustomEvent) => {
         console.log(
-          "[Iframe] 🎯 Route change detected:",
+          "Route change detected:",
           event.detail?.route,
           "for URL:",
           url
@@ -116,7 +116,7 @@ export const Iframe = observer(
 
         // Update iframe src with new route
         if (event.detail?.fullUrl && iframeRef.current) {
-          console.log("[Iframe] Updating iframe src to:", event.detail.fullUrl);
+          console.log("Updating iframe src to:", event.detail.fullUrl);
           iframeRef.current.src = event.detail.fullUrl;
         }
       };
@@ -164,7 +164,7 @@ export const Iframe = observer(
         // Verify the message is about URL changes
         if (event.data && event.data.type === "url-changed" && event.data.url) {
           console.log(
-            "[Iframe] Received URL change from iframe:",
+            "Received URL change from iframe:",
             event.data.url
           );
 
@@ -344,9 +344,6 @@ export const Iframe = observer(
       };
     }, []);
 
-    // Check if this is a mock preview URL
-    const isMockUrl = url && url.includes("fignna.dev");
-
     // Show loading state with tic-tac-toe game
     if (isLoading || !url) {
       return (
@@ -367,35 +364,6 @@ export const Iframe = observer(
               </div>
             </div>
           )}
-        </div>
-      );
-    }
-
-    // Show mock preview for mock URLs
-    if (isMockUrl) {
-      return (
-        <div
-          className={`${className} bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center`}
-        >
-          <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
-              Welcome to Fignna
-            </h1>
-            <p className="text-gray-600 mb-6">
-              Your project is ready! Start building something amazing.
-            </p>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
-              Get Started
-            </button>
-
-            <div className="mt-6 p-3 bg-gray-50 rounded text-xs text-gray-500">
-              Preview URL: {url}
-            </div>
-
-            <div className="mt-4 text-xs text-gray-400">
-              🚀 Generated with Fignna • This is a mock preview
-            </div>
-          </div>
         </div>
       );
     }

@@ -156,7 +156,7 @@ export const AddressBar = observer(() => {
   }
 
   return (
-    <div className="flex items-center bg-bk-40 border border-bd-50 rounded-md h-6 w-[180px]">
+    <div className="flex items-center bg-bk-60 border border-bd-50/60 rounded-md h-6 w-[180px]">
       {/* Refresh Button */}
       <button
         onClick={handleRefresh}
@@ -183,13 +183,13 @@ export const AddressBar = observer(() => {
             onChange={handleRouteChange}
             onBlur={handleRouteSubmit}
             onKeyDown={handleKeyDown}
-            className="w-full bg-transparent text-xs text-fg-50 font-mono outline-none border-none"
+            className="w-full bg-transparent text-xs text-fg-50 outline-none border-none font-normal mb-1"
             placeholder="/"
           />
         ) : (
           <button
             onClick={handleRouteClick}
-            className="w-full text-left text-xs text-fg-50 font-mono truncate hover:text-fg-40 transition-colors cursor-text"
+            className="w-full text-left text-xs text-fg-50 truncate hover:text-fg-40 transition-colors cursor-text font-normal mb-1"
             title="Click to edit route"
           >
             {currentRoute}
@@ -210,7 +210,7 @@ export const AddressBar = observer(() => {
           viewBox="0 0 20 20"
           fill="none"
           stroke="currentColor"
-          strokeWidth="1.5"
+          strokeWidth="1"
         >
           <path d="M15 10.833V15.5a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 3 15.5v-9A1.5 1.5 0 0 1 4.5 5H9.167" />
           <path d="M12.5 3h4.5v4.5" />

@@ -29,20 +29,20 @@ export const SeamlessPreview = observer(
       // Debounce rapid refresh calls (minimum 1 second between refreshes)
       if (now - lastRefreshTime.current < 1000) {
         console.log(
-          "[SeamlessPreview] Debouncing rapid refresh calls for:",
+          "Debouncing rapid refresh calls for:",
           src
         );
         return;
       }
 
       console.log(
-        "[SeamlessPreview] Seamlessly refreshing preview for URL:",
+        "Seamlessly refreshing preview for URL:",
         src
       );
       lastRefreshTime.current = now;
       setRefreshKey((prev) => {
         const newKey = prev + 1;
-        console.log("[SeamlessPreview] Setting new refresh key:", newKey);
+        console.log("Setting new refresh key:", newKey);
         return newKey;
       });
     }, [src]);
@@ -51,18 +51,18 @@ export const SeamlessPreview = observer(
     useEffect(() => {
       const handleCodeChange = (event: CustomEvent) => {
         console.log(
-          "[SeamlessPreview] 🎯 Code change detected:",
+          "Code change detected:",
           event.type,
           "for URL:",
           src
         );
-        console.log("[SeamlessPreview] Event detail:", event.detail);
+        console.log("Event detail:", event.detail);
         seamlessRefresh();
       };
 
       const handleRouteChange = (event: CustomEvent) => {
         console.log(
-          "[SeamlessPreview] 🎯 Route change detected:",
+          "Route change detected:",
           event.detail?.route,
           "for URL:",
           src
@@ -71,7 +71,7 @@ export const SeamlessPreview = observer(
         // Update iframe src with new route
         if (event.detail?.fullUrl && iframeRef.current) {
           console.log(
-            "[SeamlessPreview] Updating iframe src to:",
+            "Updating iframe src to:",
             event.detail.fullUrl
           );
           iframeRef.current.src = event.detail.fullUrl;
@@ -79,7 +79,7 @@ export const SeamlessPreview = observer(
       };
 
       console.log(
-        "[SeamlessPreview] 🔧 Setting up event listeners for URL:",
+        "🔧 Setting up event listeners for URL:",
         src
       );
 
@@ -102,7 +102,7 @@ export const SeamlessPreview = observer(
 
       return () => {
         console.log(
-          "[SeamlessPreview] Cleaning up event listeners for URL:",
+          "Cleaning up event listeners for URL:",
           src
         );
         window.removeEventListener(
@@ -130,7 +130,7 @@ export const SeamlessPreview = observer(
         // Verify the message is about URL changes
         if (event.data && event.data.type === "url-changed" && event.data.url) {
           console.log(
-            "[SeamlessPreview] Received URL change from iframe:",
+            "Received URL change from iframe:",
             event.data.url
           );
 
@@ -163,12 +163,12 @@ export const SeamlessPreview = observer(
         title={title}
         sandbox={sandbox}
         onLoad={() => {
-          console.log("[SeamlessPreview] Preview loaded");
+          console.log("Preview loaded");
           // Update last known URL on load
           lastKnownUrl.current = src;
         }}
         onError={(e) => {
-          console.error("[SeamlessPreview] Preview error:", e);
+          console.error("Preview error:", e);
         }}
       />
     );

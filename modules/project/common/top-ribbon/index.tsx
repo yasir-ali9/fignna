@@ -12,6 +12,7 @@ import { TicTacToeGame } from "../../widgets/tic-tac-toe-game";
 import { AddressBar } from "./address-bar";
 import { useEditorEngine } from "@/lib/stores/editor/hooks";
 import { AppMode, ViewModeTab, ViewMode } from "@/lib/stores/editor/state";
+import { useToast } from "@/components/toast/use-toast";
 
 interface TopRibbonProps {
   project?: any; // We'll type this properly later
@@ -21,6 +22,7 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
   const engine = useEditorEngine();
   const inputRef = useRef<HTMLInputElement>(null);
   const [isGameModalOpen, setIsGameModalOpen] = useState(false);
+  const { toast } = useToast();
 
   // Handle project name editing with optimistic updates
   const handleNameClick = () => {
@@ -197,7 +199,7 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
               engine.state.isViewMode &&
               engine.state.viewModeTab === ViewModeTab.PREVIEW
                 ? "bg-bk-30 text-fg-50"
-                : "text-fg-60 hover:text-fg-50 hover:bg-bk-40"
+                : "text-fg-50 hover:text-fg-50 hover:bg-bk-40"
             }`}
           >
             <svg
@@ -223,7 +225,7 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
             className={`flex items-center justify-center w-7 h-7 transition-colors rounded-md cursor-pointer ${
               engine.state.isCodeMode
                 ? "bg-bk-30 text-fg-50"
-                : "text-fg-60 hover:text-fg-50 hover:bg-bk-40"
+                : "text-fg-50 hover:text-fg-50 hover:bg-bk-40"
             }`}
           >
             <svg
@@ -246,7 +248,7 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
             className={`flex items-center justify-center w-7 h-7 transition-colors rounded-md cursor-pointer ${
               engine.state.isEditMode
                 ? "bg-bk-30 text-fg-50"
-                : "text-fg-60 hover:text-fg-50 hover:bg-bk-40"
+                : "text-fg-50 hover:text-fg-50 hover:bg-bk-40"
             }`}
           >
             <svg
@@ -324,7 +326,12 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
         </Tooltip>
 
         {/* Publish Button */}
-        <button className="flex items-center h-full group relative overflow-hidden cursor-pointer">
+        <button
+          onClick={() =>
+            toast("Publish feature coming soon...", "default", "top-center")
+          }
+          className="flex items-center h-full group relative overflow-hidden cursor-pointer"
+        >
           {/* Expanding Background */}
           <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-7 h-7 bg-ac-01 transition-all duration-300 group-hover:w-full group-hover:h-full group-hover:top-1/2 group-hover:-translate-y-1/2"></div>
 
