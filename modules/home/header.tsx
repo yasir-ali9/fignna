@@ -1,8 +1,8 @@
 "use client";
 
 import { observer } from "mobx-react-lite";
+import React, { useState } from "react";
 import { useTheme } from "@/lib/providers/theme-provider";
-import { enhanceGoogleImageUrl } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
 import { useAuthGuard } from "@/lib/hooks/use-auth-guard";
 import { Button } from "@/components/button";
@@ -22,10 +22,16 @@ const Header = observer(() => {
   // Auth guard hook for sign in button
   const authGuard = useAuthGuard() as any;
 
-  // Enhance Google profile image URL for better quality
-  const enhancedImageUrl = session?.user?.image
-    ? enhanceGoogleImageUrl(session.user.image, 96)
-    : null;
+  // Use original image URL without enhancement
+  const imageUrl = session?.user?.image || null;
+
+  // Track image loading errors
+  const [imageError, setImageError] = useState(false);
+
+  // Reset image error when URL changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [imageUrl]);
 
   // Handle successful authentication
   const handleAuthSuccess = () => {
@@ -39,7 +45,7 @@ const Header = observer(() => {
 
   return (
     <>
-      <header className="bg-bk-60">
+      <header className="bg-transparent">
         <div className="max-w-6xl mx-auto px-8 py-4">
           <div className="flex items-center justify-between">
             {/* Left side - Logo */}
@@ -86,7 +92,7 @@ const Header = observer(() => {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
                     />
                   </svg>
@@ -101,7 +107,7 @@ const Header = observer(() => {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
                     />
                   </svg>
@@ -120,16 +126,15 @@ const Header = observer(() => {
                   aria-haspopup="true"
                   onClick={() => router.push("/projects")}
                 >
-                  {enhancedImageUrl ? (
+                  {imageUrl && !imageError ? (
                     <Image
-                      src={enhancedImageUrl}
+                      src={imageUrl}
                       alt={session.user.name || "User"}
                       width={32}
                       height={32}
-                      className="w-8 h-8 rounded-full"
-                      unoptimized={enhancedImageUrl.includes(
-                        "googleusercontent.com"
-                      )}
+                      className="w-8 h-8 rounded-full object-cover"
+                      unoptimized={imageUrl.includes("googleusercontent.com")}
+                      onError={() => setImageError(true)}
                     />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-ac-01 flex items-center justify-center">

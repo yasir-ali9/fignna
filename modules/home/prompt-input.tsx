@@ -7,7 +7,6 @@ import { useAuthGuard } from "@/lib/hooks/use-auth-guard";
 import { useToast } from "@/components/toast/use-toast";
 import AuthModal from "@/modules/auth/auth-modal";
 
-
 export default function PromptInput() {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -16,7 +15,6 @@ export default function PromptInput() {
   // Auth guard, toast, and editor engine hooks
   const authGuard = useAuthGuard() as any;
   const { toast } = useToast();
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,9 +86,9 @@ export default function PromptInput() {
 
   return (
     <>
-      <div className="w-full max-w-6xl mx-auto">
+      <div className="w-full max-w-lg mx-auto">
         <form onSubmit={handleSubmit} className="relative">
-          <div className="bg-bk-40 border border-bd-50 rounded-xl shadow-lg p-4">
+          <div className="bg-bk-40/60 backdrop-blur-xl border border-bd-50/40 rounded-2xl shadow-lg p-3 pb-2">
             {/* Input Area */}
             <div className="relative">
               <textarea
@@ -98,15 +96,15 @@ export default function PromptInput() {
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Describe your app idea..."
-                rows={2}
+                rows={1}
                 className="
                 w-full bg-transparent text-fg-30 placeholder-fg-60 
-                border-none outline-none resize-none text-sm leading-relaxed overflow-hidden min-h-12 max-h-32
+                border-none outline-none resize-none text-sm leading-relaxed overflow-hidden min-h-8 max-h-32 px-1 py-1
               "
                 style={{ fontSize: "12px" }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
-                  target.style.height = "48px"; // Reset height (min-h-12 = 48px)
+                  target.style.height = "32px"; // Reset height (min-h-8 = 32px)
                   target.style.height =
                     Math.min(target.scrollHeight, 128) + "px"; // Max 128px (max-h-32)
                 }}
@@ -114,8 +112,8 @@ export default function PromptInput() {
             </div>
 
             {/* Status Indicator */}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-bd-50/20">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={handleFileUpload}
@@ -141,7 +139,8 @@ export default function PromptInput() {
                     selectedModel={selectedModel}
                     onModelChange={setSelectedModel}
                     disabled={isLoading}
-                    direction="down"
+                    direction="up"
+                    variant="transparent"
                   />
                 </div>
               </div>
@@ -150,7 +149,7 @@ export default function PromptInput() {
                 disabled={!prompt.trim() || isLoading}
                 className={`transition-all duration-200 ${
                   prompt.trim() && !isLoading
-                    ? "text-fg-30 hover:text-fg-10 cursor-pointer"
+                    ? "text-fg-30 hover:text-fg-50 cursor-pointer"
                     : "text-fg-70 cursor-not-allowed"
                 }`}
               >

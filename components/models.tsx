@@ -8,6 +8,7 @@ interface ModelsProps {
   onModelChange: (modelId: string) => void;
   disabled?: boolean;
   direction?: "up" | "down"; // Add direction prop
+  variant?: "default" | "transparent"; // Add variant prop for transparency
 }
 
 export function Models({
@@ -15,6 +16,7 @@ export function Models({
   onModelChange,
   disabled = false,
   direction = "down", // Default to down
+  variant = "default", // Default to solid background
 }: ModelsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -66,8 +68,12 @@ export function Models({
         disabled={disabled}
         className={`
           w-auto flex items-center justify-between px-3 py-1.5 
-          bg-bk-30 border border-bd-50 rounded-lg text-[11px] text-fg-30
-          hover:bg-bk-30 hover:text-fg-10 focus:bg-bk-30 focus:text-fg-10 focus:outline-none transition-all cursor-pointer
+          ${
+            variant === "transparent"
+              ? "bg-transparent border-transparent"
+              : "bg-bk-30 border border-bd-50"
+          } rounded-lg text-[11px] text-fg-30
+          hover:bg-bk-30 hover:text-fg-50 focus:bg-bk-30 focus:text-fg-50 focus:outline-none transition-all cursor-pointer
           ${disabled ? "opacity-50 cursor-not-allowed" : ""}
         `}
       >
@@ -105,8 +111,8 @@ export function Models({
                 w-full px-3 py-1.5 text-left flex items-center tracking-tight whitespace-nowrap rounded-md transition-all cursor-pointer
                 ${
                   selectedModel === modelId
-                    ? "bg-bk-30 text-fg-10"
-                    : "text-fg-30 hover:bg-bk-30 hover:text-fg-10 focus:bg-bk-30 focus:text-fg-10 focus:outline-none"
+                    ? "bg-bk-30 text-fg-50"
+                    : "text-fg-50 hover:bg-bk-30 hover:text-fg-50 focus:bg-bk-30 focus:text-fg-50 focus:outline-none"
                 }
               `}
               style={{ fontSize: "11px" }}

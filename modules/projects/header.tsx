@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
+import React, { useState } from "react";
 import { useTheme } from "@/lib/providers/theme-provider";
-import { enhanceGoogleImageUrl } from "@/lib/utils";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -19,8 +19,16 @@ const Header = observer(({ user }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
 
-  // Enhance Google profile image URL for better quality
-  const enhancedImageUrl = enhanceGoogleImageUrl(user.image, 96);
+  // Use original image URL without enhancement
+  const imageUrl = user.image;
+
+  // Track image loading errors
+  const [imageError, setImageError] = useState(false);
+
+  // Reset image error when URL changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [imageUrl]);
 
   return (
     <header className="bg-bk-60">
@@ -55,8 +63,9 @@ const Header = observer(({ user }: HeaderProps) => {
             <button
               onClick={toggleTheme}
               className="p-2 rounded-md hover:bg-bk-50 transition-colors duration-200 cursor-pointer focus:outline-none"
-              aria-label={`Switch to ${theme === "light" ? "dark" : "light"
-                } theme`}
+              aria-label={`Switch to ${
+                theme === "light" ? "dark" : "light"
+              } theme`}
             >
               {theme === "light" ? (
                 // Moon icon for dark mode
@@ -97,16 +106,15 @@ const Header = observer(({ user }: HeaderProps) => {
               aria-label={`User profile menu for ${user.name}`}
               aria-haspopup="true"
             >
-              {enhancedImageUrl ? (
+              {imageUrl && !imageError ? (
                 <Image
-                  src={enhancedImageUrl}
+                  src={imageUrl}
                   alt={user.name}
                   width={32}
                   height={32}
-                  className="w-8 h-8 rounded-full"
-                  unoptimized={enhancedImageUrl.includes(
-                    "googleusercontent.com"
-                  )}
+                  className="w-8 h-8 rounded-full object-cover"
+                  unoptimized={imageUrl.includes("googleusercontent.com")}
+                  onError={() => setImageError(true)}
                 />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-ac-01 flex items-center justify-center">

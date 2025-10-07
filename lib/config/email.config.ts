@@ -25,9 +25,7 @@ export function generateOTPEmailTemplate(
 
   const emailContent = `
 <div style="max-width: 500px; margin: 0 auto; padding: 20px; font-family: system-ui, sans-serif;">
-  <h2 style="text-align: center; color: #333; margin-bottom: 30px;">fignna.com</h2>
-  
-  <p style="color: #666; margin-bottom: 20px;">
+    <p style="color: #666; margin-bottom: 20px;">
     ${
       type === "sign-in"
         ? "Your sign-in code:"

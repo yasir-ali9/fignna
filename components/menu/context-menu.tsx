@@ -93,7 +93,7 @@ export function ContextMenu({
             ${
               item.disabled
                 ? "text-fg-60 cursor-not-allowed"
-                : "text-fg-30 hover:bg-bk-30 hover:text-fg-10 focus:bg-bk-30 focus:text-fg-10 focus:outline-none cursor-pointer"
+                : "text-fg-30 hover:bg-bk-30 hover:text-fg-50 focus:bg-bk-30 focus:text-fg-50 focus:outline-none cursor-pointer"
             }
           `}
           style={{ fontSize: "11px" }}

@@ -306,7 +306,7 @@ function ProjectsList() {
     <div className="max-w-6xl mx-auto px-8 py-12">
       {/* Header */}
       <div className="mb-12">
-        <h1 className="text-fg-30 text-2xl font-medium mb-2">Your apps</h1>
+        <h1 className="text-fg-30 text-2xl font-medium mb-2">Your Projects</h1>
       </div>
 
       {/* Projects Grid */}

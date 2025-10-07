@@ -64,8 +64,9 @@ export const FloatingToolbar = observer(() => {
         }}
       >
         <div
-          className={`bg-bk-50 rounded-lg shadow-lg p-1 px-2 transition-all duration-500 ease-in-out ${isExpanded ? "min-w-80 max-w-md" : "w-auto"
-            }`}
+          className={`bg-bk-50 rounded-lg shadow-lg p-1 px-2 transition-all duration-500 ease-in-out ${
+            isExpanded ? "min-w-80 max-w-md" : "w-auto"
+          }`}
         >
           {isExpanded ? (
             /* AI Prompt Mode */
@@ -98,7 +99,7 @@ export const FloatingToolbar = observer(() => {
                   onClick={handleSendPrompt}
                   disabled={!promptValue.trim()}
                   className="absolute right-0 top-0 w-6 h-8 flex items-center justify-center cursor-pointer
-                                         text-fg-60 hover:text-fg-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                                         text-fg-60 hover:text-fg-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   title="Send (Enter)"
                 >
                   <svg
@@ -118,7 +119,7 @@ export const FloatingToolbar = observer(() => {
               <button
                 onClick={handleExpandToggle}
                 className="w-8 h-8 flex items-center justify-center rounded-md cursor-pointer
-                                     text-fg-60 hover:text-fg-100 hover:bg-bk-40 transition-colors flex-shrink-0"
+                                     text-fg-60 hover:text-fg-500 hover:bg-bk-40 transition-colors flex-shrink-0"
                 title="Close"
               >
                 <svg
@@ -139,10 +140,11 @@ export const FloatingToolbar = observer(() => {
                 onClick={() => handleToolChange(CanvasTool.SELECT)}
                 className={`
                                 flex items-center justify-center w-8 h-8 text-sm font-medium transition-colors rounded-md cursor-pointer
-                                ${canvasTool === CanvasTool.SELECT
-                    ? "bg-bk-30 text-ac-01"
-                    : "text-fg-50 hover:bg-bk-40 hover:text-fg-30"
-                  }
+                                ${
+                                  canvasTool === CanvasTool.SELECT
+                                    ? "bg-bk-30 text-ac-01"
+                                    : "text-fg-50 hover:bg-bk-40 hover:text-fg-30"
+                                }
                                 ${isSpacePressed ? "opacity-50" : ""}
                             `}
                 title="Move tool (V)"
@@ -165,11 +167,12 @@ export const FloatingToolbar = observer(() => {
                 onClick={() => handleToolChange(CanvasTool.HAND)}
                 className={`
                                 flex items-center justify-center w-8 h-8 text-sm font-medium transition-colors rounded-md cursor-pointer
-                                ${canvasTool === CanvasTool.HAND ||
-                    isSpacePressed
-                    ? "bg-bk-30 text-ac-01"
-                    : "text-fg-50 hover:bg-bk-40 hover:text-fg-30"
-                  }
+                                ${
+                                  canvasTool === CanvasTool.HAND ||
+                                  isSpacePressed
+                                    ? "bg-bk-30 text-ac-01"
+                                    : "text-fg-50 hover:bg-bk-40 hover:text-fg-30"
+                                }
                             `}
                 title="Hand tool (H or Space)"
               >

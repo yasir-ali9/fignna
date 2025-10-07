@@ -460,7 +460,7 @@ export const ChatPanel = observer(({ className = "" }: ChatPanelProps) => {
                   !engine.sandbox.currentSandbox
                 }
                 className="w-6 h-6 flex items-center justify-center
-                       text-fg-60 hover:text-fg-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                       text-fg-60 hover:text-fg-500 disabled:opacity-30 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 title="Send (Enter)"
               >
                 <svg

@@ -19,13 +19,13 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        "bg-bk-30 text-fg-30 hover:bg-bk-20 hover:text-fg-10 focus:bg-bk-20 focus:text-fg-10",
+        "bg-bk-30 text-fg-30 hover:bg-bk-20 hover:text-fg-50 focus:bg-bk-20 focus:text-fg-50",
       secondary:
-        "bg-bk-50 text-fg-30 hover:bg-bk-40 hover:text-fg-10 focus:bg-bk-40 focus:text-fg-10",
+        "bg-bk-50 text-fg-30 hover:bg-bk-40 hover:text-fg-50 focus:bg-bk-40 focus:text-fg-50",
       ghost:
         "text-fg-60 hover:text-fg-30 hover:bg-bk-40 focus:text-fg-30 focus:bg-bk-40",
       outline:
-        "border border-bd-50 text-fg-30 hover:bg-bk-40 hover:text-fg-10 focus:bg-bk-40 focus:text-fg-10",
+        "border border-bd-50 text-fg-30 hover:bg-bk-40 hover:text-fg-50 focus:bg-bk-40 focus:text-fg-50",
     };
 
     const sizes = {

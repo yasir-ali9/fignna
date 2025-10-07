@@ -198,9 +198,9 @@ export function ContextMenuNested({
                 ${
                   item.disabled
                     ? "text-fg-60 cursor-not-allowed"
-                    : "text-fg-30 hover:bg-bk-30 hover:text-fg-10 focus:bg-bk-30 focus:text-fg-10 focus:outline-none"
+                    : "text-fg-30 hover:bg-bk-30 hover:text-fg-50 focus:bg-bk-30 focus:text-fg-50 focus:outline-none"
                 }
-                ${openSubmenu === item.id ? "bg-bk-30 text-fg-10" : ""}
+                ${openSubmenu === item.id ? "bg-bk-30 text-fg-50" : ""}
               `}
               style={{ fontSize: "11px" }}
             >
