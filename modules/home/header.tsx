@@ -7,6 +7,8 @@ import { authClient } from "@/lib/auth-client";
 import { useAuthGuard } from "@/lib/hooks/use-auth-guard";
 import { Button } from "@/components/button";
 import AuthModal from "@/modules/auth/auth-modal";
+import { Logo, LogoText } from "@/components/logo";
+import Badge from "@/components/badge";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -46,28 +48,27 @@ const Header = observer(() => {
   return (
     <>
       <header className="bg-transparent">
-        <div className="max-w-6xl mx-auto px-8 py-4">
+        <div className="max-w-6xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
             {/* Left side - Logo */}
             <div className="flex items-center">
-              {/* Application logo icon with theme-aware coloring */}
+              {/* Application logo with theme-aware styling */}
               <button
-                className="w-6 h-6 text-fg-60 cursor-pointer hover:text-fg-50 transition-colors focus:outline-none"
+                className="cursor-pointer hover:opacity-80 transition-opacity focus:outline-none text-fg-70 flex items-center gap-2 relative"
                 aria-label="Go to home page"
                 onClick={() => router.push("/")}
               >
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
+                <Logo className="w-6 h-6" />
+                <LogoText className="h-8 pt-1" />
+
+                {/* Beta badge positioned in top-right of logo text */}
+                <Badge
+                  variant="default"
+                  size="xs"
+                  className="absolute -right-4 translate-x-1/2 -translate-y-1/2"
                 >
-                  <path
-                    d="M9.33898 7.76271L9.33898 6.76271L7.33898 6.76271L7.33898 7.76271L8.33898 7.76271L9.33898 7.76271ZM14.7627 9.11864L14.7627 8.11864L12.7627 8.11864L12.7627 9.11864L13.7627 9.11864L14.7627 9.11864ZM7.29289 6.71662L6.58579 7.42373L8 8.83794L8.70711 8.13084L8 7.42373L7.29289 6.71662ZM13.0556 7.73357L12.3485 8.44068L13.7627 9.85489L14.4698 9.14778L13.7627 8.44068L13.0556 7.73357ZM8.33898 22L9.33898 22L9.33898 7.76271L8.33898 7.76271L7.33898 7.76271L7.33898 22L8.33898 22ZM13.7627 22L14.7627 22L14.7627 9.11864L13.7627 9.11864L12.7627 9.11864L12.7627 22L13.7627 22ZM13.4237 2L12.7166 1.29289L7.29289 6.71662L8 7.42373L8.70711 8.13084L14.1308 2.70711L13.4237 2ZM19.1864 3.01695L18.4793 2.30984L13.0556 7.73357L13.7627 8.44068L14.4698 9.14778L19.8935 3.72406L19.1864 3.01695Z"
-                    fill="currentColor"
-                  />
-                </svg>
+                  Beta
+                </Badge>
               </button>
             </div>
 
@@ -92,7 +93,7 @@ const Header = observer(() => {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={1.5}
+                      strokeWidth={1}
                       d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
                     />
                   </svg>

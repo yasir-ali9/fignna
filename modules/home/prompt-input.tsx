@@ -88,7 +88,7 @@ export default function PromptInput() {
     <>
       <div className="w-full max-w-lg mx-auto">
         <form onSubmit={handleSubmit} className="relative">
-          <div className="bg-bk-40/60 backdrop-blur-xl border border-bd-50/40 rounded-2xl shadow-lg p-3 pb-2">
+          <div className="bg-bk-40 border border-bd-50 rounded-2xl p-3 pb-2">
             {/* Input Area */}
             <div className="relative">
               <textarea

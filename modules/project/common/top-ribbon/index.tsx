@@ -108,7 +108,7 @@ export const TopRibbon = observer(({ project }: TopRibbonProps) => {
         console.error("Failed to rename project:", data.error);
         alert(`Failed to rename project: ${data.error || "Unknown error"}`);
       } else {
-        console.log("✅ Project renamed successfully:", cleanName);
+        console.log("Project renamed successfully:", cleanName);
       }
     } catch (error) {
       // Revert on error

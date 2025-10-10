@@ -156,7 +156,7 @@ export const AddressBar = observer(() => {
   }
 
   return (
-    <div className="flex items-center bg-bk-60 border border-bd-50/60 rounded-md h-6 w-[180px]">
+    <div className="flex items-center bg-bk-50 border border-bd-50/60 rounded-md h-7 w-[180px]">
       {/* Refresh Button */}
       <button
         onClick={handleRefresh}

@@ -38,7 +38,7 @@ export function RightPanel({ className = "" }: RightPanelProps) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-3 py-1.5 font-medium transition-colors rounded-md cursor-pointer text-[11px] ${
+            className={`px-2 py-1 font-medium transition-colors rounded-md cursor-pointer text-[11px] ${
               activeTab === tab.id
                 ? "bg-bk-30 text-fg-50" // active tab
                 : "text-fg-60 hover:text-fg-50 hover:bg-bk-40" // other tabs
